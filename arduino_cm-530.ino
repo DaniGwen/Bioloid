@@ -3,47 +3,13 @@
 //**************************************************************************************************
 #include <Wire.h>
 #include <SPI.h>
-#include <Pixy2SPI_SS.h>               // Pixy2 library
+#include <Pixy2.h>               // Pixy2 library
 #include <PIDLoop.h>
 #include "SSD1306Ascii.h"
 #include "SSD1306AsciiWire.h"
-#include <timer.h>               //Timer library
-#include <XBee.h>
+//#include <timer.h>               //Timer library
 #include <SharpIR.h>
-
-/*
-  XBEE
-  This example is for Series 1 XBee (802.15.4)
-  Receives either a RX16 or RX64 packet and sets a PWM value based on packet data.
-  Error led is flashed if an unexpected packet is received
-*/
-
-XBee xbee = XBee();
-XBeeResponse response = XBeeResponse();
-// create reusable response objects for responses we expect to handle
-Rx16Response rx16 = Rx16Response();
-Rx64Response rx64 = Rx64Response();
-
-int statusLed = 11;
-int errorLed = 12;
-int dataLed = 10;
-
-uint8_t option = 0;
-uint8_t data = 0;
-
-void flashLed(int pin, int times, int wait) {
-
-  for (int i = 0; i < times; i++) {
-    digitalWrite(pin, HIGH);
-    delay(wait);
-    digitalWrite(pin, LOW);
-
-    if (i + 1 < times) {
-      delay(wait);
-    }
-  }
-}
-// XBEE END LINE
+#include <Commander.h>
 
 //**************************************************************************************************
 // DEFINES
@@ -62,17 +28,21 @@ void flashLed(int pin, int times, int wait) {
 // Define proper RST_PIN if required.
 #define RST_PIN -1
 //**************************************************************************************************
+// PINS
+//**************************************************************************************************
+int blueLights = 2;
+int distanceSensor = 20;
+
+//**************************************************************************************************
 // VARIABLES
 //**************************************************************************************************
-SSD1306AsciiWire oled;      // Create display object
-
-Pixy2SPI_SS pixy;                                           // Create a Pixy camera object
+SSD1306AsciiWire oled;                     // Create display object
+Pixy2 pixy;                          // Create a Pixy camera object
 PIDLoop panLoop(400, 0, 400, true);
 PIDLoop tiltLoop(500, 0, 500, true);
-
-SharpIR sensor = SharpIR(20, 1080);;
-
-auto timerElapsed = timer_create_default();           // create a timer with default settings
+SharpIR sensor = SharpIR(distanceSensor, 1080);        // Distance sensor
+//auto timerElapsed = timer_create_default();    // create a timer with default settings
+Commander command = Commander();
 
 double maxDeviation = 0.75 * (X_AXIS_MID / 2); // Determines the max deviation from the center
 double maxDevFoot   = 0.97 * (X_AXIS_R_FOOT / 2); // Determines the max deviation from the r foot
@@ -81,9 +51,11 @@ uint8_t fsmState; // Defines state in FSM which controls the robot.
 
 long seconds = 1;
 long minutes = 0;
-
 int irSensor_value = 0;
-int pixyObjects = 0;
+uint8_t blocks = 0;
+int blueLightsVal = 0;
+long dataFromCM530 = 0;
+long receivedCM530 = 0;
 
 //**************************************************************************************************
 // CONSTANTS
@@ -158,7 +130,7 @@ const uint8_t* buttonR2_ptr = buttonR2;
 // FUNCTION PROTOTYPES
 //**************************************************************************************************
 // Robot states
-void walkTowardsBall();
+void walkTowardsObject();
 void positionRobot();
 void performKick();
 
@@ -177,37 +149,26 @@ void robotKick();
 //                                         Name: setup
 //**************************************************************************************************
 void setup() {
+  //Serial.begin(38400);
+  //pinMode(0, OUTPUT);
 
-  // XBEE SETUP
-  //  pinMode(statusLed, OUTPUT);
-  //  pinMode(errorLed, OUTPUT);
-  //  pinMode(dataLed,  OUTPUT);
-
-  // start serial XBEE
-  //  Serial1.begin(9600);
-  //  xbee.setSerial(Serial);
-
-  flashLed(statusLed, 3, 50);
-  //END EXBEE SETUP
-
-  //IR Setup
-  //pinMode(20, INPUT);
-
-  Serial.begin(9600);
+  // Start serial XBEE/ Commander
+  Serial3.begin(38400);
 
   // Set the blue leds
-  pinMode(2, OUTPUT);
+  pinMode(blueLights, OUTPUT);
 
-  // This is needed for the OLED to function properly
-  Wire.begin();
-  Wire.setClock(400000L);
+
 
   //************************************************************************************************
   // 0.96 OLED Display settings
   //************************************************************************************************
+  // This is needed for the OLED to function properly
+  Wire.begin();
+  //Wire.setClock(400000L);
   oled.begin(&Adafruit128x64, 0x3C);       // Initialize display with the I2C address of 0x3C
   oled.setScrollMode(SCROLL_MODE_OFF);
-  oled.invertDisplay(true);
+  oled.invertDisplay(false);
   oled.setInvertMode(false);
   oled.setLetterSpacing(3);
   oled.setFont(lcd5x7);
@@ -216,44 +177,40 @@ void setup() {
   oled.println(F("Initializing OLED"));
   delay(400);
 
-  // Start serial PIXY2
-  Serial2.begin(115200);
-
   // start serial to CM-530 (1900 baud)
   Serial1.begin(1900);
   oled.println(F("Start SERIAL 1900"));
   oled.println();
   delay(100);
 
-  // Initialize Pixy camera
-  delay(4000);
-  // Send command to initialize CM-530
-  pixy.init();
-  Serial1.write(moveFoward_ptr, 3);
-  delay(210);
-  Serial1.write(moveFoward_ptr + 3, 3);
-  pixy.setLamp(0, 0);    // Flash head leds (upper-lights, lower light)
+  delay(3000);
+  Serial2.begin(19200);  // Start serial PIXY2
+  pixy.init();            // Initialize Pixy camera
+  pixy.setLamp(0, 0);     // Head leds (upper-lights, lower light)
   pixy.changeProg("color_connected_components");
   oled.println(F("Initializing PIXY 2.."));
   oled.println();
   delay(300);
 
-  // Flash up blue leds
+  // Flash blue leds
   oled.println(F("Checking LIGHTS.."));
   oled.println();
-  CheckLights();
+  digitalWrite(blueLights, HIGH);
+  delay(30);
+  digitalWrite(blueLights, LOW);
 
+  // READY
   delay(400);
   oled.clearField(0, 5, 50);
   oled.setRow(5);
   oled.setCol(40);
   oled.set2X();
   oled.println(F("READY!"));
-  delay(900);
-  oled.clear();               // reset display
+  delay(2000);
+  oled.clear();               // Clear display
 
   // call the do_count function every 1000 millis (1 second)
-  timerElapsed.every(1000, do_count);
+  //timerElapsed.every(1000, do_count);
 
   // Initialize FSM state
   //************************************************************************************************
@@ -271,123 +228,143 @@ void loop()
 {
   // IR value in centimeters
   irSensor_value = sensor.distance(); //Calculate the distance in centimeters;
-  Serial.println(irSensor_value);
-  delay(200);
-  oled.clearField(60, 5 , 5);
-  oled.setCol(60);
-  oled.setCol(5);
-  oled.set1X();
-  oled.print(F("DIST: "));
-  oled.print(irSensor_value);
 
-  // Get the number of objects
-  pixyObjects = PixyDetectObject();
+  // Testing for remocon data packets
+  //  LeftHandUp();
+  //  delay(5000);
+  //  LeftHandDown();
 
-  // TESTING
-  //  while (irSensor_value < 10 && pixyObjects == 1) {
-  //    pixyObjects = PixyDetectObject();
-  //    irSensor_value = sensor.distance();
+  // Test new hands
+  PrintDataFromCM530();
+  PrintPanPosition();
+  PrintIRSensorValue(irSensor_value);
+  CheckPixyFramerate();
+  PixyDetectObject();
+
+  //  if (irSensor_value < 8 )
+  //  {
+  //    // panLoop.m_command - center point is 500
+  //    if (panLoop.m_command < 350)
+  //    {
+  //      RightHandUp();
+  //      while (dataFromCM530 != 1)
+  //      {
+  //        PixyDetectObject();
+  //        dataFromCM530 = ReceiveDataFromCM530();
+  //      }
+  //    }
+  //    else if (panLoop.m_command > 650)
+  //    {
+  //      LeftHandUp();
   //
-  //    LeftHandUp();
+  //      while ( dataFromCM530 != 1)
+  //      {
+  //        PixyDetectObject();
+  //        dataFromCM530 = ReceiveDataFromCM530();
+  //      }
+  //    }
   //  }
 
-  LeftHandUp();
-  delay(5000);
-  LeftHandDown();
+  // COMMANDER2 remote control
+  //  if (command.ReadMsgs() > 0)
+  //  {
+  //    oled.clearField(100, 4, 8);
+  //    oled.set1X();
+  //    oled.setRow(4);
+  //    oled.setCol(60);
+  //    oled.print(F("Input: "));
+  //    oled.print(Serial3.read());
+  //    if (Serial3.read() == 1) {
+  //      ToggleLights();
+  //    }
+  //    else if (Serial3.read() == 2) {
+  //      LeftHandUp();
+  //    }
+  //    else if (Serial3.read() == 4) {
+  //      LeftHandDown();
+  //    }
+  //  }
 
-  // XBEE CODE
-  //RunXBee();
-  //XBeePrint();
+  //  timerElapsed.tick();
+  //  DisplayMinutes();
+  //  DisplaySeconds();
 
-  //**************************************************************************************************
-  // Name: DISPLAY
-  //**************************************************************************************************
-  timerElapsed.tick();
-  DisplayMinutes();
-  DisplaySeconds();
 
   //**************************************************************************************************
   // Name: Move Robot
   // Run state machine for every loop
   //**************************************************************************************************
-  //  switch (fsmState)
-  //  {
-  //    // Find the ball
-  //    case ROBO_FSM_FIND:
-  //      uint8_t blocks = PixyDetectObject();
-  //
-  //      oled.clearField(32, 5, 4);   //print blocks value for debugging
-  //      oled.setCol(0);
-  //      oled.setRow(5);
-  //      oled.print(F("Blocks: "));
-  //      oled.print(blocks);
-  //
-  //      if (blocks > 1) {
-  //        fsmState = ROBO_FSM_WALK;
-  //      }
-  //      break;
-  //
-  //    // Make the robot walk towards the ball.
-  //    case ROBO_FSM_WALK:
-  //      walkTowardsBall();
-  //      break;
-  //
-  //    // Make the robot position the ball.
-  //    case ROBO_FSM_POSITION:
-  //      positionRobot();
-  //      break;
-  //
-  //    // Have the robot kick the ball.
-  //    case ROBO_FSM_KICK:
-  //      performKick();
-  //      break;
-  //
-  //    // Default case
-  //    default:
-  //      break;
-  //  }
+  switch (fsmState)
+  {
+    // Find the ball
+    case ROBO_FSM_FIND:
+      PrintRobotState(1);
+
+      while (blocks == 0) {
+        PixyDetectObject();
+        blocks = pixy.ccc.getBlocks();
+      }
+      fsmState = ROBO_FSM_WALK;
+      break;
+
+    // Make the robot walk towards the object.
+    case ROBO_FSM_WALK:
+      PrintRobotState(2);
+      walkTowardsObject();
+      break;
+
+    // Make the robot position to object.
+    case ROBO_FSM_POSITION:
+      PrintRobotState(3);
+      positionRobot();
+      break;
+
+    // Have the robot kick the ball.
+    case ROBO_FSM_KICK:
+      PrintRobotState(4);
+      performKick();
+      break;
+
+    // Default case
+    default:
+      break;
+  }
 }
 
 // FUNCTIONS
 
 //**************************************************************************************************
-// Name: walkTowardsBall
+//                                     Name: walkTowardsObject
 //**************************************************************************************************
-void walkTowardsBall()
+void walkTowardsObject()
 {
-  uint16_t blocks; // Number of blocks found by Pixy camera
-  uint16_t x_left;
-  uint16_t x_right;
-  uint16_t x_mid;
+  PixyDetectObject();
   uint16_t y_axis_point;
 
-  // Get the number of blocks from the Pixy camera
-  blocks = PixyDetectObject();
-
+  // Get the number of blocks and update servos on Pixy2
+  blocks = pixy.ccc.getBlocks();
+  y_axis_point = pixy.ccc.blocks[0].m_y;
+  Print_Y_Axis_Value(y_axis_point);      // Print Y axis value from pixy
+  
   // If the object is detected
   if (blocks)
   {
-    // Determine where the middle point of the block is
-    x_left = pixy.ccc.blocks[0].m_x;
-    x_right = x_left + (pixy.ccc.blocks[0].m_width);
-    x_mid = ((x_right - x_left) / 2) + x_left;
-
-    y_axis_point = pixy.ccc.blocks[0].m_y;
-
     // If the block is to the left, we want to move left.
-    if (x_mid < (X_AXIS_MID - maxDeviation))
+    // panLoop.m_command and tiltLoop.m_command we can get the pan and tilt values of the servos
+    if (panLoop.m_command > 580)
     {
       moveRobotLeft();
     }
     // If the block is to the right, we want to move right.
-    else if (x_mid > (X_AXIS_MID + maxDeviation))
+    else if (panLoop.m_command < 380)
     {
       moveRobotRight();
     }
     else
     {
       // If the ball is not close, walk towards the ball
-      if ( y_axis_point < 183 )
+      //y_axis_point
+      if ( irSensor_value > 10 )
       {
         moveRobotForward();
       }
@@ -407,7 +384,6 @@ void walkTowardsBall()
     //**********************************************************************************************
     fsmState = ROBO_FSM_FIND;
   }
-  //delay(250);
 }
 
 //**************************************************************************************************
@@ -421,9 +397,10 @@ void positionRobot()
   uint16_t x_mid;
   uint16_t y_axis_point;
 
-
+  PixyDetectObject();
+  
   // Get the image details.
-  blocks = PixyDetectObject();
+  blocks = pixy.ccc.getBlocks();
 
   // If the image is detected
   if (blocks)
@@ -435,22 +412,21 @@ void positionRobot()
 
     y_axis_point = pixy.ccc.blocks[0].m_y;
 
-    // If the ball is close enough, but not aligned, shuffle
-    //    if (x_mid < X_AXIS_R_FOOT)
-    //    {
-    //      slideRobotLeft();
-    //    }
-    //    else if(x_mid > (X_AXIS_R_FOOT + maxDevFoot))
-    //    {
-    //      slideRobotRight();
-    //    }
+    //If the ball is close enough, but not aligned, go left or right
+    if (x_mid < X_AXIS_R_FOOT)
+    {
+      moveRobotLeft();
+    }
+    else if (x_mid > (X_AXIS_R_FOOT + maxDevFoot))
+    {
+      moveRobotRight();
+    }
 
     // If the block is not close enough, move forward.
-    if (y_axis_point < 90)
+    if (irSensor_value > 10)
     {
       moveRobotForward();
     }
-    // If the block is to the right, we want to move right.
     else
     {
       fsmState = ROBO_FSM_KICK;
@@ -468,7 +444,7 @@ void positionRobot()
 }
 
 //**************************************************************************************************
-// Name: performKick
+//                                               Name: performKick
 //**************************************************************************************************
 void performKick()
 {
@@ -478,40 +454,44 @@ void performKick()
 
 
 //**************************************************************************************************
-// Name: moveRobotForward
+//                                            Name: moveRobotForward
 //**************************************************************************************************
 void moveRobotForward()
 {
+  SendDataMessage();
   Serial1.write(moveFoward_ptr, 3);
   delay(210);
   Serial1.write(moveFoward_ptr + 3, 3);
-  SendDataMessage();
+  delay(300);
+  Serial1.write(moveFoward_ptr, 3);
+  delay(210);
+  Serial1.write(moveFoward_ptr + 3, 3);
 }
 
 //**************************************************************************************************
-// Name: moveRobotLeft
+//                                              Name: moveRobotLeft
 //**************************************************************************************************
 void moveRobotLeft()
 {
+  SendDataMessage();
   Serial1.write(moveLeft_ptr, 3);
   delay(210);
   Serial1.write(moveLeft_ptr + 3, 3);
-  SendDataMessage();
 }
 
 //**************************************************************************************************
-// Name: moveRobotRight
+//                                               Name: moveRobotRight
 //**************************************************************************************************
 void moveRobotRight()
 {
+  SendDataMessage();
   Serial1.write(moveRight_ptr, 3);
   delay(210);
   Serial1.write(moveRight_ptr + 3, 3);
-  SendDataMessage();
 }
 
 //**************************************************************************************************
-// Name: moveRobotBack
+//                                                  Name: moveRobotBack
 //**************************************************************************************************
 void moveRobotBack()
 {
@@ -523,7 +503,7 @@ void moveRobotBack()
 
 
 //**************************************************************************************************
-// Name: slideRobotLeft
+//                                           Name: slideRobotLeft
 //**************************************************************************************************
 //void slideRobotLeft()
 //{
@@ -533,7 +513,7 @@ void moveRobotBack()
 //}
 
 //**************************************************************************************************
-// Name: slideRobotRight
+//                                              Name: slideRobotRight
 //**************************************************************************************************
 //void slideRobotRight()
 //{
@@ -543,7 +523,7 @@ void moveRobotBack()
 //}
 
 //**************************************************************************************************
-// Name: robotKick
+//                                               Name: robotKick
 //**************************************************************************************************
 void robotKick()
 {
@@ -558,54 +538,24 @@ void LeftHandUp() {
   delay(210);
   int byteSend = Serial1.write(buttonU3_ptr + 3, 3);
 
+  oled.clearField(10, 7 , 6);
   oled.setRow(7);
-  oled.setCol(50);
-  oled.print(F("Bytes:"));
-  oled.print(byteSend);
+  oled.setCol(0);
+  oled.print(F("Left hand"));
 }
 
-void LeftHandDown() {
+void RightHandUp() {
   Serial1.write(buttonL2_ptr, 3);
   delay(210);
   int byteSend = Serial1.write(buttonL2_ptr + 3, 3);
 
+  oled.clearField(10, 7 , 6);
   oled.setRow(7);
-  oled.setCol(50);
-  oled.print(F("Bytes:"));
-  oled.print(byteSend);
-}
-
-void DisplaySeconds() {
-  oled.setRow(1);
-  oled.setCol(80);
-  oled.print(seconds);
-  oled.println(F(" SEC"));
-}
-
-void DisplayMinutes() {
-  oled.setRow(1);
   oled.setCol(0);
-  oled.set1X();
-  oled.print(F("ON: "));
-  oled.setCol(30);
-  oled.print(minutes);
-  oled.print(F(" MIN"));
-
+  oled.print(F("Right hand"));
 }
 
-bool XBeePrint() {
-  oled.clearField(87, 4, 8);
-  oled.set1X();
-  oled.setRow(4);
-  oled.setCol(55);
-  oled.print(F("XBEE: "));
-  if (true) {
-    //    oled.print(F("..."));
-  }
-  else {
-    oled.print(F("Received"));
-  }
-}
+
 
 // Count the minutes and seconds
 bool do_count(void *) {
@@ -638,27 +588,124 @@ bool do_count(void *) {
 
   return true; // repeat? true
 }
-
+//**************************************************************************************************
+//                                            OLED actions
+//**************************************************************************************************
 // Command send display
 void SendDataMessage() {
-  oled.setCol(40);
+  oled.clearField(15, 3, 10);  // clearField(col, row , int - number of characters to delete)
+  oled.setCol(0);
   oled.setRow(3);
-  oled.clearField(40, 3, 14);  // clearField(col, row , int - number of characters to delete)
   oled.print(F("Command:"));
   oled.print(F(" SEND!"));
 }
 
+void DisplaySeconds() {
+  oled.setRow(0);
+  oled.setCol(80);
+  oled.print(seconds);
+  oled.println(F(" SEC"));
+}
 
-// Lights up blue leds
-void CheckLights() {
-  digitalWrite(2, HIGH);
-  delay(100);
-  digitalWrite(2, LOW);
-  delay(300);
-  digitalWrite(2, HIGH);
-  delay(100);
-  digitalWrite(2, LOW);
-  delay(300);
+void DisplayMinutes() {
+  oled.setRow(0);
+  oled.setCol(0);
+  oled.set1X();
+  oled.print(F("ON: "));
+  oled.setCol(30);
+  oled.print(minutes);
+  oled.print(F(" MIN"));
+
+}
+
+void PrintRobotState(int state) {
+
+  oled.clearField(56 , 4 , 20);
+  oled.setRow(4);
+  oled.setCol(50);
+  oled.print(F("State: "));
+
+  switch (state) {
+    case 1:
+      oled.print(F("FIND"));
+      break;
+    case 2:
+      oled.print(F("WALK"));
+      break;
+    case 3:
+      oled.print(F("POSITION"));
+      break;
+    case 4:
+      oled.print(F("KICK!"));
+      break;
+    default:
+      oled.print(F("UKNOWN.."));
+      break;
+  }
+}
+
+void Print_Y_Axis_Value(int y_axis){
+  oled.clearField(8,0,20);
+  oled.setCol(0);
+  oled.setRow(0);
+  oled.print(F("Y-AXIS: "));
+  oled.print(y_axis);
+}
+
+void PrintPanPosition() {
+  oled.clearField(50, 2, 5);    // clearField (col, row , int - number of characters to delete)
+  oled.set1X();
+  oled.setCol(45);
+  oled.setRow(2);
+  oled.print(F("PAN Pos: "));      // Print Servo position
+  oled.print(panLoop.m_command);
+}
+
+void PrintIRSensorValue(int value) {
+  oled.clearField(80, 7 , 10);
+  oled.setCol(65);
+  oled.setRow(7);
+  oled.set1X();
+  oled.print(F("DIST: "));
+  oled.print(value);
+}
+
+bool XBeePrint() {
+  oled.clearField(87, 4, 8);
+  oled.set1X();
+  oled.setRow(4);
+  oled.setCol(55);
+  oled.print(F("XBEE: "));
+  if (true) {
+    //    oled.print(F("..."));
+  }
+  else {
+    oled.print(F("Received"));
+  }
+}
+
+void PrintDataFromCM530() {
+  oled.clearField(0, 5, 10);     // (col , row , number of characters)
+  oled.set1X();
+  oled.setRow(5);
+  oled.setCol(0);
+  oled.print(F("CM-530: "));
+  oled.print(receivedCM530);
+}
+//**************************************************************************************************
+//                                                  LIGHTS
+//**************************************************************************************************
+// Toggle all lights
+void ToggleLights() {
+  blueLightsVal = digitalRead(blueLights);
+  if (blueLightsVal == HIGH) {
+    digitalWrite(blueLights, LOW);
+    pixy.setLamp(0, 0);
+  }
+  else {
+    digitalWrite(blueLights, HIGH);
+    pixy.setLamp(1, 1);
+  }
 }
 
 void LightsOn() {
@@ -677,44 +724,7 @@ void LightsOff() {
   digitalWrite(2, LOW);
 }
 
-void RunXBee() {
-  // continuously reads packets, looking for RX16 or RX64
-
-  xbee.readPacket();
-
-  if (xbee.getResponse().isAvailable()) {
-    // got something
-
-    if (xbee.getResponse().getApiId() == RX_16_RESPONSE || xbee.getResponse().getApiId() == RX_64_RESPONSE) {
-      // got a rx packet
-
-      if (xbee.getResponse().getApiId() == RX_16_RESPONSE) {
-        xbee.getResponse().getRx16Response(rx16);
-        option = rx16.getOption();
-        data = rx16.getData(0);
-      } else {
-        xbee.getResponse().getRx64Response(rx64);
-        option = rx64.getOption();
-        data = rx64.getData(0);
-      }
-
-      // TODO check option, rssi bytes
-      flashLed(statusLed, 1, 10);
-
-      // set dataLed PWM to value of the first byte in the data
-      analogWrite(dataLed, data);
-    } else {
-      // not something we were expecting
-      flashLed(errorLed, 1, 25);
-    }
-  } else if (xbee.getResponse().isError()) {
-    //nss.print("Error reading packet.  Error code: ");
-    //nss.println(xbee.getResponse().getErrorCode());
-    // or flash error led
-  }
-}
-
-uint8_t PixyDetectObject() {
+void PixyDetectObject() {
   static int i = 0;
   int j;
   char buf[64];
@@ -727,13 +737,9 @@ uint8_t PixyDetectObject() {
   {
     i++;
 
-    if (i % 60 == 0) {
-      Serial.println(i);
-
-      //      oled.setCol(0);
-      //      oled.setRow(6);
-      //      oled.print(F("Tracking.."));
-    }
+    //    if (i % 60 == 0) {
+    //      Serial.println(i);
+    //    }
 
     // calculate pan and tilt "errors" with respect to first object (blocks[0]),
     // which is the biggest object (they are sorted by size).
@@ -747,6 +753,10 @@ uint8_t PixyDetectObject() {
     // set pan and tilt servos
     pixy.setServos(panLoop.m_command, tiltLoop.m_command);
 
+    oled.setCol(0);                 // Print tracking
+    oled.setRow(6);
+    oled.print(F("TRACKING.."));
+
 #if 0 // for debugging
     sprintf(buf, "%ld %ld %ld %ld", rotateLoop.m_command, translateLoop.m_command, left, right);
     Serial.println(buf);
@@ -755,16 +765,30 @@ uint8_t PixyDetectObject() {
   }
   else // no object detected, go into reset state
   {
-    //    oled.clearField(0, 6, 10);    // clearField(col, row , int - number of characters to delete)
-    //    oled.set1X();
-    //    oled.setCol(0);
-    //    oled.setRow(6);
-    //    oled.print(F("Lost.."));
-
     panLoop.reset();
     tiltLoop.reset();
     pixy.setServos(panLoop.m_command, tiltLoop.m_command);
-  }
 
-  return  pixy.ccc.getBlocks();
+    oled.clearField(0, 6, 10);    // clearField (col, row , int - number of characters to delete)
+    oled.set1X();
+    oled.setCol(0);
+    oled.setRow(6);
+    oled.print(F("LOST.."));      // Print Lost
+  }
+}
+
+// Get integer data from CM-530.
+long ReceiveDataFromCM530() {
+  receivedCM530 = Serial1.parseInt();
+  return receivedCM530;
+}
+
+// Check if frame rate is low then that means the lighting is low, we turn the lights on.
+void CheckPixyFramerate() {
+  if (pixy.getFPS() < 30) {
+    pixy.setLamp(1, 1);
+  }
+  else {
+    pixy.setLamp(0, 0);
+  }
 }
