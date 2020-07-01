@@ -307,7 +307,8 @@ o call faddr_dest:InitializationGyro
 x call faddr_dest:InitGripperControl
 - 
 o // param_text:It will stand by if there are no inputs for 1 minute.  60 / 0.128 = 468.75
-o load param_dest:cm:5 param_src:dec_num:469
+o load param_dest:var:StandBy param_src:dec_num:469
+o load param_dest:cm:5 param_src:var:StandBy
 - 
 o while(1)
 o begin
@@ -315,12 +316,12 @@ o call faddr_dest:JointsThatShouldNotMove
 - 
 o if param_src:cm:2 lop:== param_src:bool_num:1 rop:then
 o begin
-o load param_dest:cm:5 param_src:var:WaitControl
+o load param_dest:cm:5 param_src:var:StandBy
+- 
 o load param_dest:var:ReceiveData param_src:cm:1
 - 
 o if param_src:var:ReceiveData lop:== param_src:rc100z_num:1 rop:then
 o begin
-o // param_text:Set legs speed
 o call faddr_dest:LegsSpeedForward
 - 
 o load param_dest:var:WalkCommand param_src:dec_num:1
@@ -336,13 +337,11 @@ o call faddr_dest:WalkExecute
 o end
 o elseif param_src:var:ReceiveData lop:== param_src:rc100z_num:4 rop:then
 o begin
-o call faddr_dest:LegsSpeedBackward
 o load param_dest:var:WalkCommand param_src:dec_num:3
 o call faddr_dest:WalkExecute
 o end
 o elseif param_src:var:ReceiveData lop:== param_src:rc100z_num:8 rop:then
 o begin
-o call faddr_dest:LegsSpeedBackward
 o load param_dest:var:WalkCommand param_src:dec_num:4
 o call faddr_dest:WalkExecute
 o end
@@ -578,47 +577,15 @@ o break
 o end
 o end
 o end
-o elseif param_src:cm:1 lop:== param_src:rc100z_num:512 rop:then
-o begin
-o load param_dest:cm:17 param_src:scale_num:29
-- 
-o while(1)
-o begin
-o if param_src:cm:1 lop:== param_src:rc100z_num:64 rop:then
-o begin
-o // param_text:right hand grab
-o load param_dest:motion:-:50 param_src:dec_num:185
-o call faddr_dest:WaitMotion
-o end
-o elseif param_src:cm:1 lop:== param_src:rc100z_num:768 rop:then
-o begin
-o // param_text:right hand carry
-o load param_dest:motion:-:50 param_src:dec_num:186
-o call faddr_dest:WaitMotion
-o end
-o elseif param_src:cm:1 lop:== param_src:rc100z_num:128 rop:then
-o begin
-o // param_text:right hand forward and open
-o load param_dest:motion:-:50 param_src:dec_num:184
-o call faddr_dest:WaitMotion
-o end
-o elseif param_src:cm:1 lop:== param_src:rc100z_num:256 rop:then
-o begin
-o load param_dest:cm:17 param_src:scale_num:24
-o // param_text:Right hand Throw
-o load param_dest:motion:-:50 param_src:dec_num:188
-o call faddr_dest:WaitMotion
-o end
-o elseif param_src:cm:1 lop:== param_src:rc100z_num:1 rop:|| param_src:cm:1 lop:== param_src:rc100z_num:2 rop:|| param_src:cm:1 lop:== param_src:rc100z_num:8 rop:|| param_src:cm:1 lop:== param_src:rc100z_num:4 rop:then
-o begin
-o jump laddr_dest:RemoteControl
-o end
-o end
-o end
 o elseif param_src:var:ReceiveData lop:== param_src:rc100z_num:768 rop:then
 o begin
 o label laddr_src:SitAndRest
 o load param_dest:cm:17 param_src:scale_num:22
+- 
+o call faddr_dest:ResetHandsOffset
+- 
+o load param_dest:motion:1:50 param_src:dec_num:0
+o call faddr_dest:WaitMotion
 o // param_text:Sit and rest
 o load param_dest:motion:-:50 param_src:dec_num:191
 o call faddr_dest:WaitMotion
@@ -648,13 +615,13 @@ o begin
 o if param_src:cm:1 lop:== param_src:rc100z_num:256 rop:then
 o begin
 o // param_text:bend ready to grab
-o load param_dest:motion:-:50 param_src:dec_num:194
+x load param_dest:motion:-:50 param_src:dec_num:194
 o call faddr_dest:WaitMotion
 - 
 o wait param_src:cm:1 lop:== param_src:rc100z_num:256 rop:then
 - 
 o // param_text: grab
-o load param_dest:motion:-:50 param_src:dec_num:195
+x load param_dest:motion:-:50 param_src:dec_num:195
 o call faddr_dest:WaitMotion
 o end
 o elseif param_src:cm:1 lop:== param_src:rc100z_num:768 rop:then
@@ -663,7 +630,7 @@ o load param_dest:cm:18 param_src:buzzertime_num:255
 o load param_dest:cm:17 param_src:melody_num:13
 - 
 o // param_text:throw item
-o load param_dest:motion:-:50 param_src:dec_num:196
+x load param_dest:motion:-:50 param_src:dec_num:196
 o call faddr_dest:WaitMotion
 o end
 o elseif param_src:cm:1 lop:== param_src:rc100z_num:288 rop:then
@@ -749,10 +716,10 @@ x call faddr_dest:WaitTimer
 x load param_dest:motor:254:101 param_src:bool_num:0
 x jump laddr_dest:DemoMode
 x end
-x elseif param_src:cm:5 lop:== param_src:timer_num:0 rop:then
-x begin
-x jump laddr_dest:SitAndRest
-x end
+o elseif param_src:cm:5 lop:== param_src:timer_num:0 rop:then
+o begin
+o jump laddr_dest:SitAndRest
+o end
 o end
 o end
 - 
@@ -761,8 +728,8 @@ o // param_text:                                                                
 - 
 o function faddr_src:LegsSpeedForward
 o begin
-o load param_dest:var:LegsSpeedCW param_src:dir_num:1194
-o load param_dest:var:LegsSpeedCCW param_src:dir_num:170
+o load param_dest:var:LegsSpeedCW param_src:dir_num:1229
+o load param_dest:var:LegsSpeedCCW param_src:dir_num:205
 - 
 o load param_dest:motor:11:107 param_src:var:LegsSpeedCW
 o load param_dest:motor:11:107 param_src:var:LegsSpeedCCW
@@ -892,7 +859,7 @@ o end
 o // param_text:Check if DMS > 500 and  GETS UP
 o function faddr_src:CheckIfSensorInputAndGetUp
 o begin
-o if param_src:aux:2:67:Touch lop:> param_src:dec_num:200 rop:|| param_src:cm:2 lop:== param_src:bool_num:1 rop:then
+o if param_src:cm:19 lop:== param_src:dec_num:2 rop:|| param_src:cm:2 lop:== param_src:bool_num:1 rop:then
 o begin
 o load param_dest:motor:254:100 param_src:bool_num:1
 - 
@@ -1433,19 +1400,13 @@ o // param_text:Add extra hands movement
 o compute param_dest:var:rlBalanceHands param_src:var:rlBalanceHands aop:+ param_src:dec_num:-34
 - 
 o // param_text:Add more offset depending if it is going backwards or forward
-o if param_src:var:WalkCommand lop:== param_src:dec_num:2 rop:then
+o if param_src:var:WalkCommand lop:== param_src:dec_num:1 rop:then
 o begin
-o // param_text:Hands front offset 
-o compute param_dest:motion:1:52 param_src:dec_num:0 aop:+ param_src:var:rlBalanceHands
-o compute param_dest:motion:2:52 param_src:dec_num:0 aop:- param_src:var:rlBalanceHands
-o end
-o elseif param_src:var:WalkCommand lop:== param_src:dec_num:1 rop:then
-o begin
-o compute param_dest:motion:11:52 param_src:dec_num:0 aop:+ param_src:position_num:730
-o compute param_dest:motion:12:52 param_src:dec_num:0 aop:- param_src:position_num:730
+o compute param_dest:motion:11:52 param_src:dec_num:0 aop:+ param_src:position_num:760
+o compute param_dest:motion:12:52 param_src:dec_num:0 aop:- param_src:position_num:760
 o // param_text:Hands back offset
-o compute param_dest:motion:1:52 param_src:dec_num:-100 aop:+ param_src:var:rlBalanceHands
-o compute param_dest:motion:2:52 param_src:dec_num:100 aop:- param_src:var:rlBalanceHands
+o compute param_dest:motion:1:52 param_src:dec_num:-90 aop:+ param_src:var:rlBalanceHands
+o compute param_dest:motion:2:52 param_src:dec_num:90 aop:- param_src:var:rlBalanceHands
 o end
 o else
 o begin
@@ -1453,8 +1414,8 @@ o compute param_dest:motion:1:52 param_src:dec_num:0 aop:+ param_src:var:rlBalan
 o compute param_dest:motion:2:52 param_src:dec_num:0 aop:- param_src:var:rlBalanceHands
 o end
 - 
-o compute param_dest:motion:11:52 param_src:dec_num:0 aop:+ param_src:var:FinalRLBal1
-o compute param_dest:motion:12:52 param_src:dec_num:0 aop:- param_src:var:FinalRLBal1
+o compute param_dest:motion:11:52 param_src:dec_num:0 aop:- param_src:var:FinalRLBal1
+o compute param_dest:motion:12:52 param_src:dec_num:0 aop:+ param_src:var:FinalRLBal1
 - 
 o compute param_dest:motion:13:52 param_src:dec_num:0 aop:+ param_src:var:FinalRLBal1
 o compute param_dest:motion:15:52 param_src:dec_num:0 aop:+ param_src:var:FinalRLBal0

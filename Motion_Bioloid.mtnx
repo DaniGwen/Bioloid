@@ -110,22 +110,22 @@
     </Flow>
     <Flow name="22 F_S_L" return="2">
       <units>
-        <unit main="32 F_S_L" mainSpeed="2.1" loop="1" exit="33 " exitSpeed="2.1" callSite="True" />
-        <unit main="33 " mainSpeed="2.1" loop="1" exit="42 F_E_R" exitSpeed="2.1" callSite="True" />
-        <unit main="38 F_M_R" mainSpeed="2.7" loop="1" exit="39 " exitSpeed="2.7" callSite="True" />
-        <unit main="39 " mainSpeed="2.7" loop="1" exit="40 F_E_L" exitSpeed="2.1" callSite="True" />
-        <unit main="36 F_M_L" mainSpeed="2.7" loop="1" exit="37 " exitSpeed="2.7" callSite="True" />
-        <unit main="37 " mainSpeed="2.7" loop="1" exit="42 F_E_R" exitSpeed="2.1" callSite="True" />
+        <unit main="32 F_S_L" mainSpeed="2" loop="1" exit="33 " exitSpeed="2" callSite="True" />
+        <unit main="33 " mainSpeed="2" loop="1" exit="42 F_E_R" exitSpeed="2" callSite="True" />
+        <unit main="38 F_M_R" mainSpeed="2.5" loop="1" exit="39 " exitSpeed="2.5" callSite="True" />
+        <unit main="39 " mainSpeed="2.5" loop="1" exit="40 F_E_L" exitSpeed="2.5" callSite="True" />
+        <unit main="36 F_M_L" mainSpeed="2.5" loop="1" exit="37 " exitSpeed="2.5" callSite="True" />
+        <unit main="37 " mainSpeed="2.5" loop="1" exit="42 F_E_R" exitSpeed="2.5" callSite="True" />
       </units>
     </Flow>
     <Flow name="23 F_S_R" return="2">
       <units>
-        <unit main="34 F_S_R" mainSpeed="2.1" loop="1" exit="35 " exitSpeed="2.1" callSite="True" />
-        <unit main="35 " mainSpeed="2.1" loop="1" exit="40 F_E_L" exitSpeed="2.1" callSite="True" />
-        <unit main="36 F_M_L" mainSpeed="2.7" loop="1" exit="37 " exitSpeed="2.7" callSite="True" />
-        <unit main="37 " mainSpeed="2.7" loop="1" exit="42 F_E_R" exitSpeed="2.1" callSite="True" />
-        <unit main="38 F_M_R" mainSpeed="2.7" loop="1" exit="39 " exitSpeed="2.7" callSite="True" />
-        <unit main="39 " mainSpeed="2.7" loop="1" exit="40 F_E_L" exitSpeed="2.1" callSite="True" />
+        <unit main="34 F_S_R" mainSpeed="2" loop="1" exit="35 " exitSpeed="2" callSite="True" />
+        <unit main="35 " mainSpeed="2" loop="1" exit="40 F_E_L" exitSpeed="2" callSite="True" />
+        <unit main="36 F_M_L" mainSpeed="2.5" loop="1" exit="37 " exitSpeed="2.5" callSite="True" />
+        <unit main="37 " mainSpeed="2.5" loop="1" exit="42 F_E_R" exitSpeed="2.5" callSite="True" />
+        <unit main="38 F_M_R" mainSpeed="2.5" loop="1" exit="39 " exitSpeed="2.5" callSite="True" />
+        <unit main="39 " mainSpeed="2.5" loop="1" exit="40 F_E_L" exitSpeed="2.5" callSite="True" />
       </units>
     </Flow>
     <Flow name="24 F_E_L" return="-1">
@@ -174,22 +174,22 @@
     </Flow>
     <Flow name="30 LT_S_L" return="2">
       <units>
-        <unit main="56 LT_S_L" mainSpeed="2.1" loop="1" exit="57 " exitSpeed="2.1" callSite="True" />
-        <unit main="57 " mainSpeed="2.1" loop="1" exit="66 LT_E_R" exitSpeed="2.1" callSite="True" />
-        <unit main="62 LT_M_R" mainSpeed="2.5" loop="1" exit="63 " exitSpeed="2.7" callSite="True" />
-        <unit main="63 " mainSpeed="2.5" loop="1" exit="60 LT_M_L" exitSpeed="2.7" callSite="True" />
-        <unit main="60 LT_M_L" mainSpeed="2.5" loop="1" exit="61 " exitSpeed="2.7" callSite="True" />
-        <unit main="61 " mainSpeed="2.5" loop="1" exit="66 LT_E_R" exitSpeed="2.1" callSite="True" />
+        <unit main="56 LT_S_L" mainSpeed="2" loop="1" exit="57 " exitSpeed="2" callSite="True" />
+        <unit main="57 " mainSpeed="2" loop="1" exit="66 LT_E_R" exitSpeed="2" callSite="True" />
+        <unit main="62 LT_M_R" mainSpeed="2.5" loop="1" exit="63 " exitSpeed="2.5" callSite="True" />
+        <unit main="63 " mainSpeed="2.5" loop="1" exit="60 LT_M_L" exitSpeed="2.5" callSite="True" />
+        <unit main="60 LT_M_L" mainSpeed="2.5" loop="1" exit="61 " exitSpeed="2.5" callSite="True" />
+        <unit main="61 " mainSpeed="2.5" loop="1" exit="66 LT_E_R" exitSpeed="2.5" callSite="True" />
       </units>
     </Flow>
     <Flow name="31 LT_S_R" return="2">
       <units>
         <unit main="58 LT_S_R" mainSpeed="2.1" loop="1" exit="59 " exitSpeed="2.1" callSite="True" />
-        <unit main="59 " mainSpeed="2.1" loop="1" exit="60 LT_M_L" exitSpeed="2.7" callSite="True" />
-        <unit main="60 LT_M_L" mainSpeed="2.5" loop="1" exit="61 " exitSpeed="2.7" callSite="True" />
-        <unit main="61 " mainSpeed="2.5" loop="1" exit="66 LT_E_R" exitSpeed="2.1" callSite="True" />
-        <unit main="62 LT_M_R" mainSpeed="2.5" loop="1" exit="63 " exitSpeed="2.7" callSite="True" />
-        <unit main="63 " mainSpeed="2.5" loop="1" exit="60 LT_M_L" exitSpeed="2.7" callSite="True" />
+        <unit main="59 " mainSpeed="2.1" loop="1" exit="60 LT_M_L" exitSpeed="2.1" callSite="True" />
+        <unit main="60 LT_M_L" mainSpeed="2.5" loop="1" exit="61 " exitSpeed="2.5" callSite="True" />
+        <unit main="61 " mainSpeed="2.5" loop="1" exit="66 LT_E_R" exitSpeed="2.5" callSite="True" />
+        <unit main="62 LT_M_R" mainSpeed="2.5" loop="1" exit="63 " exitSpeed="2.5" callSite="True" />
+        <unit main="63 " mainSpeed="2.5" loop="1" exit="60 LT_M_L" exitSpeed="2.5" callSite="True" />
       </units>
     </Flow>
     <Flow name="32 LT_E_L" return="-1">
@@ -207,21 +207,21 @@
     <Flow name="34 RT_S_L" return="2">
       <units>
         <unit main="68 RT_S_L" mainSpeed="2.1" loop="1" exit="69 " exitSpeed="2.1" callSite="True" />
-        <unit main="69 " mainSpeed="2.1" loop="1" exit="74 RT_M_R" exitSpeed="2.7" callSite="True" />
-        <unit main="74 RT_M_R" mainSpeed="2.5" loop="1" exit="75 " exitSpeed="2.7" callSite="True" />
-        <unit main="75 " mainSpeed="2.5" loop="1" exit="76 RT_E_L" exitSpeed="2.1" callSite="True" />
-        <unit main="72 RT_M_L" mainSpeed="2.5" loop="1" exit="73 " exitSpeed="2.7" callSite="True" />
-        <unit main="73 " mainSpeed="2.5" loop="1" exit="74 RT_M_R" exitSpeed="2.7" callSite="True" />
+        <unit main="69 " mainSpeed="2.1" loop="1" exit="74 RT_M_R" exitSpeed="2.1" callSite="True" />
+        <unit main="74 RT_M_R" mainSpeed="2.5" loop="1" exit="75 " exitSpeed="2.5" callSite="True" />
+        <unit main="75 " mainSpeed="2.5" loop="1" exit="76 RT_E_L" exitSpeed="2.5" callSite="True" />
+        <unit main="72 RT_M_L" mainSpeed="2.5" loop="1" exit="73 " exitSpeed="2.5" callSite="True" />
+        <unit main="73 " mainSpeed="2.5" loop="1" exit="74 RT_M_R" exitSpeed="2.5" callSite="True" />
       </units>
     </Flow>
     <Flow name="35 RT_S_R" return="2">
       <units>
         <unit main="70 RT_S_R" mainSpeed="2.1" loop="1" exit="71 " exitSpeed="2.1" callSite="True" />
         <unit main="71 " mainSpeed="2.1" loop="1" exit="76 RT_E_L" exitSpeed="2.1" callSite="True" />
-        <unit main="72 RT_M_L" mainSpeed="2.5" loop="1" exit="73 " exitSpeed="2.7" callSite="True" />
-        <unit main="73 " mainSpeed="2.5" loop="1" exit="74 RT_M_R" exitSpeed="2.7" callSite="True" />
-        <unit main="74 RT_M_R" mainSpeed="2.5" loop="1" exit="75 " exitSpeed="2.7" callSite="True" />
-        <unit main="75 " mainSpeed="2.5" loop="1" exit="76 RT_E_L" exitSpeed="2.1" callSite="True" />
+        <unit main="72 RT_M_L" mainSpeed="2.5" loop="1" exit="73 " exitSpeed="2.5" callSite="True" />
+        <unit main="73 " mainSpeed="2.5" loop="1" exit="74 RT_M_R" exitSpeed="2.5" callSite="True" />
+        <unit main="74 RT_M_R" mainSpeed="2.5" loop="1" exit="75 " exitSpeed="2.5" callSite="True" />
+        <unit main="75 " mainSpeed="2.5" loop="1" exit="76 RT_E_L" exitSpeed="2.5" callSite="True" />
       </units>
     </Flow>
     <Flow name="36 RT_E_L" return="-1">
@@ -240,20 +240,20 @@
       <units>
         <unit main="80 L_S_L" mainSpeed="2.1" loop="1" exit="81 " exitSpeed="2.1" callSite="True" />
         <unit main="81 " mainSpeed="2.1" loop="1" exit="90 L_E_R" exitSpeed="2.1" callSite="True" />
-        <unit main="86 L_M_R" mainSpeed="3" loop="1" exit="87 " exitSpeed="2.7" callSite="True" />
-        <unit main="87 " mainSpeed="3" loop="1" exit="84 L_M_L" exitSpeed="2.7" callSite="True" />
-        <unit main="84 L_M_L" mainSpeed="3" loop="1" exit="85 " exitSpeed="2.7" callSite="True" />
-        <unit main="85 " mainSpeed="3" loop="1" exit="90 L_E_R" exitSpeed="2.1" callSite="True" />
+        <unit main="86 L_M_R" mainSpeed="2.6" loop="1" exit="87 " exitSpeed="2.6" callSite="True" />
+        <unit main="87 " mainSpeed="2.6" loop="1" exit="84 L_M_L" exitSpeed="2.6" callSite="True" />
+        <unit main="84 L_M_L" mainSpeed="2.6" loop="1" exit="85 " exitSpeed="2.6" callSite="True" />
+        <unit main="85 " mainSpeed="2.6" loop="1" exit="90 L_E_R" exitSpeed="2.6" callSite="True" />
       </units>
     </Flow>
     <Flow name="39 L_S_R" return="2">
       <units>
         <unit main="82 L_S_R" mainSpeed="2.1" loop="1" exit="83 " exitSpeed="2.1" callSite="True" />
-        <unit main="83 " mainSpeed="2.1" loop="1" exit="84 L_M_L" exitSpeed="2.7" callSite="True" />
-        <unit main="84 L_M_L" mainSpeed="3" loop="1" exit="85 " exitSpeed="2.7" callSite="True" />
-        <unit main="85 " mainSpeed="3" loop="1" exit="90 L_E_R" exitSpeed="2.1" callSite="True" />
-        <unit main="86 L_M_R" mainSpeed="3" loop="1" exit="87 " exitSpeed="2.7" callSite="True" />
-        <unit main="87 " mainSpeed="3" loop="1" exit="84 L_M_L" exitSpeed="2.7" callSite="True" />
+        <unit main="83 " mainSpeed="2.1" loop="1" exit="84 L_M_L" exitSpeed="2.1" callSite="True" />
+        <unit main="84 L_M_L" mainSpeed="2.6" loop="1" exit="85 " exitSpeed="2.6" callSite="True" />
+        <unit main="85 " mainSpeed="2.6" loop="1" exit="90 L_E_R" exitSpeed="2.6" callSite="True" />
+        <unit main="86 L_M_R" mainSpeed="2.6" loop="1" exit="87 " exitSpeed="2.6" callSite="True" />
+        <unit main="87 " mainSpeed="2.6" loop="1" exit="84 L_M_L" exitSpeed="2.6" callSite="True" />
       </units>
     </Flow>
     <Flow name="40 L_E_L" return="-1">
@@ -271,21 +271,21 @@
     <Flow name="42 R_S_L" return="2">
       <units>
         <unit main="92 R_S_L" mainSpeed="2.1" loop="1" exit="93 " exitSpeed="2.1" callSite="True" />
-        <unit main="93 " mainSpeed="2.1" loop="1" exit="98 R_M_R" exitSpeed="2.7" callSite="True" />
-        <unit main="98 R_M_R" mainSpeed="3" loop="1" exit="99 " exitSpeed="2.7" callSite="True" />
-        <unit main="99 " mainSpeed="3" loop="1" exit="100 R_E_L" exitSpeed="2.1" callSite="True" />
-        <unit main="96 R_M_L" mainSpeed="3" loop="1" exit="97 " exitSpeed="2.7" callSite="True" />
-        <unit main="97 " mainSpeed="3" loop="1" exit="98 R_M_R" exitSpeed="2.7" callSite="True" />
+        <unit main="93 " mainSpeed="2.1" loop="1" exit="98 R_M_R" exitSpeed="2.1" callSite="True" />
+        <unit main="98 R_M_R" mainSpeed="2.6" loop="1" exit="99 " exitSpeed="2.6" callSite="True" />
+        <unit main="99 " mainSpeed="2.6" loop="1" exit="100 R_E_L" exitSpeed="2.6" callSite="True" />
+        <unit main="96 R_M_L" mainSpeed="2.6" loop="1" exit="97 " exitSpeed="2.6" callSite="True" />
+        <unit main="97 " mainSpeed="2.6" loop="1" exit="98 R_M_R" exitSpeed="2.6" callSite="True" />
       </units>
     </Flow>
     <Flow name="43 R_S_R" return="2">
       <units>
         <unit main="94 R_S_R" mainSpeed="2.1" loop="1" exit="95 " exitSpeed="2.1" callSite="True" />
         <unit main="95 " mainSpeed="2.1" loop="1" exit="100 R_E_L" exitSpeed="2.1" callSite="True" />
-        <unit main="96 R_M_L" mainSpeed="3" loop="1" exit="97 " exitSpeed="2.7" callSite="True" />
-        <unit main="97 " mainSpeed="3" loop="1" exit="98 R_M_R" exitSpeed="2.7" callSite="True" />
-        <unit main="98 R_M_R" mainSpeed="3" loop="1" exit="99 " exitSpeed="2.7" callSite="True" />
-        <unit main="99 " mainSpeed="3" loop="1" exit="100 R_E_L" exitSpeed="2.1" callSite="True" />
+        <unit main="96 R_M_L" mainSpeed="2.6" loop="1" exit="97 " exitSpeed="2.6" callSite="True" />
+        <unit main="97 " mainSpeed="2.6" loop="1" exit="98 R_M_R" exitSpeed="2.6" callSite="True" />
+        <unit main="98 R_M_R" mainSpeed="2.6" loop="1" exit="99 " exitSpeed="2.6" callSite="True" />
+        <unit main="99 " mainSpeed="2.6" loop="1" exit="100 R_E_L" exitSpeed="2.6" callSite="True" />
       </units>
     </Flow>
     <Flow name="44 R_E_L" return="-1">
@@ -2300,7 +2300,7 @@
         <step frame="569" pose="-139.97 139.97 -76.34 76.34 -10.26 10.26 -40.3 30.62 -15.27 15.27 -127.34 127.34 -118.06 112.61 -21.09 21.09 -8.14 8.14 20 -20 0 0" />
         <step frame="722" pose="-139.97 139.97 -8.34 8.34 -10.26 10.26 -40.3 30.62 -15.27 15.27 -131.34 131.34 -118.06 118.06 -24.09 24.09 -8.14 8.14 20 -20 0 0" />
         <step frame="867" pose="-4 4 -40.24 40.24 -56.17 69.37 -30.75 30.75 -7.91 7.91 -125.68 125.68 -113.96 113.96 -26.95 26.95 0.29 -0.29 -0.88 0.59 -71.82 70.94" />
-        <step frame="1015" pose="-52.15 48.63 -50.1 47.75 -105.47 101.37 -26.37 24.02 -3.52 3.52 -147.07 146.19 -122.17 120.41 -26.66 26.07 0 -0.29 0 0 -81.71 84.31" />
+        <step frame="1015" pose="-71.63 71.63 -6.75 6.75 -69.96 69.96 -26.37 24.02 -3.52 3.52 -147.07 146.19 -122.17 120.41 -26.66 26.07 0 -0.29 16.8 -16.84 -81.71 84.31" />
       </steps>
     </Page>
     <Page name="lay down">
@@ -2700,30 +2700,15 @@
         <callFlow callIndex="180" subIndex="0" exitIndex="0" flow="61 BRT_E_R" />
         <callFlow callIndex="181" subIndex="1" exitIndex="0" flow="61 BRT_E_R" />
         <callFlow callIndex="182" subIndex="0" exitIndex="0" flow="62 Balance" />
-        <callFlow callIndex="184" subIndex="0" exitIndex="0" flow="right_hand_forward" />
-        <callFlow callIndex="185" subIndex="0" exitIndex="0" flow="right_hand_forward_grab" />
-        <callFlow callIndex="186" subIndex="0" exitIndex="0" flow="right_hand_forward_carry" />
-        <callFlow callIndex="187" subIndex="0" exitIndex="0" flow="right_hand_forward_release" />
-        <callFlow callIndex="188" subIndex="0" exitIndex="0" flow="hands forward-throw-right" />
         <callFlow callIndex="189" subIndex="0" exitIndex="0" flow="hip move" />
         <callFlow callIndex="190" subIndex="0" exitIndex="0" flow="electric 1" />
         <callFlow callIndex="191" subIndex="0" exitIndex="0" flow="sit" />
         <callFlow callIndex="192" subIndex="0" exitIndex="0" flow="laydown" />
         <callFlow callIndex="194" subIndex="0" exitIndex="0" flow="1 duckdown" />
-        <callFlow callIndex="195" subIndex="0" exitIndex="0" flow="2 duckdown-grab" />
-        <callFlow callIndex="196" subIndex="0" exitIndex="0" flow="4 duckdown-throw" />
         <callFlow callIndex="197" subIndex="0" exitIndex="0" flow="left-punch" />
         <callFlow callIndex="198" subIndex="0" exitIndex="0" flow="right-punch" />
         <callFlow callIndex="199" subIndex="0" exitIndex="0" flow="hey-hi" />
-        <callFlow callIndex="200" subIndex="0" exitIndex="0" flow="wave_RightHand" />
-        <callFlow callIndex="201" subIndex="0" exitIndex="0" flow="wave_LeftHand" />
-        <callFlow callIndex="202" subIndex="0" exitIndex="0" flow="left_hand_close" />
-        <callFlow callIndex="203" subIndex="0" exitIndex="0" flow="left_hand_up" />
-        <callFlow callIndex="204" subIndex="0" exitIndex="0" flow="right_hand_up" />
-        <callFlow callIndex="205" subIndex="0" exitIndex="0" flow="right_hand_close" />
         <callFlow callIndex="206" subIndex="0" exitIndex="0" flow="seated_ready_to_play" />
-        <callFlow callIndex="207" subIndex="0" exitIndex="0" flow="seated_catch" />
-        <callFlow callIndex="208" subIndex="0" exitIndex="0" flow="seated_throw_back" />
       </callFlows>
     </Bucket>
   </BucketRoot>
