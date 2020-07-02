@@ -54,7 +54,6 @@ long minutes = 0;
 int irSensor_value = 0;
 uint8_t blocks = 0;
 int blueLightsVal = 0;
-long dataFromCM530 = 0;
 long receivedCM530 = 0;
 
 //**************************************************************************************************
@@ -78,38 +77,38 @@ const uint8_t  moveBack[6]    = {0xAA, 0x02, 0x7E,
                                 };
 const uint8_t* moveBack_ptr   = moveBack;
 
-// remote button 3 => 64
+// 3 => 64
 const uint8_t  button3[12]   = {0xAA, 0x40, 0x1E,
                                 0xAA, 0x00, 0x1E
                                };
 const uint8_t* button3_ptr   = button3;
 
-// remote button 1 => 16
+// 1 => 16
 const uint8_t  button1[12]     = {0xAA, 0x10, 0x1E,
                                   0xAA, 0x00, 0x1E
                                  };
 const uint8_t* button1_ptr     = button1;
 
 
-// button 4 => 128
+// 4 => 128
 const uint8_t  button4[12] = {0xAA, 0x00, 0x0F,
                               0xAA, 0x00, 0x1E
                              };
 const uint8_t* button4_ptr = button4;
 
-// remote button U + 2 => 33 decimal
+// U + 2 => 33 decimal
 const uint8_t buttonU2[6] = {0xAA, 0x21, 0x0E,
                              0xAA, 0x00, 0x1E
                             };
 const uint8_t* buttonU2_ptr = buttonU2;
 
-// remote button U + 1 => 17 decimal
+// U + 1 => 17 decimal
 const uint8_t buttonU1[6] = {0xAA, 0x11, 0x0E,
                              0xAA, 0x00, 0x1E
                             };
 const uint8_t* buttonU1_ptr = buttonU1;
 
-// remote button U + 3 => 65 decimal
+// U + 3 => 65 decimal
 const uint8_t buttonU3[6] = {0xAA, 0x41, 0x0E,
                              0xAA, 0x00, 0x1E
                             };
@@ -126,6 +125,42 @@ const uint8_t  buttonR2[12] = {0xAA, 0x28, 0x1E,
                                0xAA, 0x00, 0x1E
                               };
 const uint8_t* buttonR2_ptr = buttonR2;
+
+// U + R => 9
+const uint8_t  buttonUR[6] = {0xAA, 0x09, 0x0E,
+                              0xAA, 0x00, 0x1E
+                             };
+const uint8_t* buttonUR_ptr = buttonUR;
+
+// D + R => 10
+const uint8_t  buttonDR[12] = {0xAA, 0x0A, 0x7E,
+                               0xAA, 0x00, 0x1E
+                              };
+const uint8_t* buttonDR_ptr = buttonDR;
+
+// L + R => 12
+//const uint8_t  buttonLR[12] = {0xAA, 0x0C, 0x5E,
+//                              0xAA, 0x00, 0x1E
+//                             };
+//const uint8_t* buttonLR_ptr = buttonLR;
+
+// 1 + 2 => 48
+const uint8_t  button12[6] = {0xAA, 0x30, 0x1E,
+                              0xAA, 0x00, 0x1E
+                             };
+const uint8_t* button12_ptr = button12;
+
+// 1 + 3 => 80
+const uint8_t  button13[6] = {0xAA, 0x50, 0x1E,
+                              0xAA, 0x00, 0x1E
+                             };
+const uint8_t* button13_ptr = button13;
+
+// R + 1 => 24
+const uint8_t  buttonR1[6] = {0xAA, 0x18, 0x1E,
+                              0xAA, 0x00, 0x1E
+                             };
+const uint8_t* buttonR1_ptr = buttonR1;
 //**************************************************************************************************
 // FUNCTION PROTOTYPES
 //**************************************************************************************************
@@ -141,9 +176,6 @@ void moveRobotRight();
 void moveRobotBack();
 void slideRobotLeft();
 void slideRobotRight();
-void robotLookUp();
-void robotLookDown();
-void robotKick();
 
 //**************************************************************************************************
 //                                         Name: setup
@@ -219,6 +251,11 @@ void setup() {
   // find the shape of the ball as well.
   //************************************************************************************************
   fsmState = ROBO_FSM_FIND ;
+
+  //Wait untill CM-530 is ready and running.
+  while (receivedCM530 == 0) {
+    ReceiveDataFromCM530();
+  }
 }
 
 //**************************************************************************************************
@@ -226,18 +263,23 @@ void setup() {
 //**************************************************************************************************
 void loop()
 {
+  ReceiveDataFromCM530();  // Read values from CM530
   // IR value in centimeters
   irSensor_value = sensor.distance(); //Calculate the distance in centimeters;
 
   // Testing for remocon data packets
-  //  LeftHandUp();
-  //  delay(5000);
-  //  LeftHandDown();
+  if ( irSensor_value < 10) {
+    RightHandUp();
+  }
 
-  // Test new hands
+
+  //***************************
+  // PRINT DATA ON OLED DISPLAY
+  //***************************
   PrintDataFromCM530();
   PrintPanPosition();
   PrintIRSensorValue(irSensor_value);
+
   CheckPixyFramerate();
   PixyDetectObject();
 
@@ -265,7 +307,9 @@ void loop()
   //    }
   //  }
 
+  //**************************
   // COMMANDER2 remote control
+  //**************************
   //  if (command.ReadMsgs() > 0)
   //  {
   //    oled.clearField(100, 4, 8);
@@ -294,41 +338,41 @@ void loop()
   // Name: Move Robot
   // Run state machine for every loop
   //**************************************************************************************************
-  switch (fsmState)
-  {
-    // Find the ball
-    case ROBO_FSM_FIND:
-      PrintRobotState(1);
-
-      while (blocks == 0) {
-        PixyDetectObject();
-        blocks = pixy.ccc.getBlocks();
-      }
-      fsmState = ROBO_FSM_WALK;
-      break;
-
-    // Make the robot walk towards the object.
-    case ROBO_FSM_WALK:
-      PrintRobotState(2);
-      walkTowardsObject();
-      break;
-
-    // Make the robot position to object.
-    case ROBO_FSM_POSITION:
-      PrintRobotState(3);
-      positionRobot();
-      break;
-
-    // Have the robot kick the ball.
-    case ROBO_FSM_KICK:
-      PrintRobotState(4);
-      performKick();
-      break;
-
-    // Default case
-    default:
-      break;
-  }
+  //  switch (fsmState)
+  //  {
+  //    // Find the ball
+  //    case ROBO_FSM_FIND:
+  //      PrintRobotState(1);
+  //
+  //      while (blocks == 0) {
+  //        PixyDetectObject();
+  //        blocks = pixy.ccc.getBlocks();
+  //      }
+  //      fsmState = ROBO_FSM_WALK;
+  //      break;
+  //
+  //    // Make the robot walk towards the object.
+  //    case ROBO_FSM_WALK:
+  //      PrintRobotState(2);
+  //      walkTowardsObject();
+  //      break;
+  //
+  //    // Make the robot position to object.
+  //    case ROBO_FSM_POSITION:
+  //      PrintRobotState(3);
+  //      positionRobot();
+  //      break;
+  //
+  //    // Have the robot kick the ball.
+  //    case ROBO_FSM_KICK:
+  //      PrintRobotState(4);
+  //      performKick();
+  //      break;
+  //
+  //    // Default case
+  //    default:
+  //      break;
+  //  }
 }
 
 // FUNCTIONS
@@ -345,7 +389,7 @@ void walkTowardsObject()
   blocks = pixy.ccc.getBlocks();
   y_axis_point = pixy.ccc.blocks[0].m_y;
   Print_Y_Axis_Value(y_axis_point);      // Print Y axis value from pixy
-  
+
   // If the object is detected
   if (blocks)
   {
@@ -398,7 +442,7 @@ void positionRobot()
   uint16_t y_axis_point;
 
   PixyDetectObject();
-  
+
   // Get the image details.
   blocks = pixy.ccc.getBlocks();
 
@@ -545,9 +589,9 @@ void LeftHandUp() {
 }
 
 void RightHandUp() {
-  Serial1.write(buttonL2_ptr, 3);
+  Serial1.write(buttonR1_ptr, 3);
   delay(210);
-  int byteSend = Serial1.write(buttonL2_ptr + 3, 3);
+  int byteSend = Serial1.write(buttonR1_ptr + 3, 3);
 
   oled.clearField(10, 7 , 6);
   oled.setRow(7);
@@ -644,8 +688,8 @@ void PrintRobotState(int state) {
   }
 }
 
-void Print_Y_Axis_Value(int y_axis){
-  oled.clearField(8,0,20);
+void Print_Y_Axis_Value(int y_axis) {
+  oled.clearField(8, 0, 20);
   oled.setCol(0);
   oled.setRow(0);
   oled.print(F("Y-AXIS: "));
@@ -685,7 +729,7 @@ bool XBeePrint() {
 }
 
 void PrintDataFromCM530() {
-  oled.clearField(0, 5, 10);     // (col , row , number of characters)
+  oled.clearField(12, 5, 20);     // (col , row , number of characters)
   oled.set1X();
   oled.setRow(5);
   oled.setCol(0);
