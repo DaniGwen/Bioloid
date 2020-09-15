@@ -9,18 +9,52 @@ o main
 o begin
 o // param_text:Set up at IR channel broadcast. (Can control with every channel) 
 o load param_dest:cm:22 param_src:channel_num:0
-o jump laddr_dest:RemoteControl
 - 
-o call faddr_dest:CheckHands
+o // param_text:SEND DATA TO ARDUINO TO LET IT KNOW WE ARE READY
+o load param_dest:cm:9 param_src:dec_num:1
+- 
+x jump laddr_dest:RemoteControl
+- 
+x call faddr_dest:CheckHands
 - 
 o // param_text:TEST ARDUINO SIGNAL RECEIVE
 o while(1)
 o begin
+o if param_src:cm:2 lop:== param_src:bool_num:1 rop:then
+o begin
+o if param_src:cm:1 lop:== param_src:rc100z_num:24 rop:then
+o begin
+o call faddr_dest:OpenLeftHand
+- 
+o load param_dest:cm:5 param_src:timer_num:16
 o call faddr_dest:WaitTimer
-x elseif param_src:aux:2:67 lop:> param_src:dec_num:10 rop:then
-x begin
-x jump laddr_dest:RemoteControl
-x end
+o load param_dest:cm:9 param_src:dec_num:10
+o end
+o elseif param_src:cm:1 lop:== param_src:rc100z_num:40 rop:then
+o begin
+o call faddr_dest:OpenRightHand
+- 
+o load param_dest:cm:5 param_src:timer_num:16
+o call faddr_dest:WaitTimer
+o load param_dest:cm:9 param_src:dec_num:10
+o end
+o elseif param_src:cm:1 lop:== param_src:rc100z_num:65 rop:then
+o begin
+o call faddr_dest:RetractionLeftHand
+- 
+o load param_dest:cm:5 param_src:timer_num:16
+o call faddr_dest:WaitTimer
+o load param_dest:cm:9 param_src:dec_num:10
+o end
+o elseif param_src:cm:1 lop:== param_src:rc100z_num:33 rop:then
+o begin
+o call faddr_dest:RetractionRightHand
+- 
+o load param_dest:cm:5 param_src:timer_num:16
+o call faddr_dest:WaitTimer
+o load param_dest:cm:9 param_src:dec_num:10
+o end
+o end
 o end
 - 
 o load param_dest:var:IsUp param_src:bool_num:0
@@ -312,6 +346,7 @@ o load param_dest:cm:5 param_src:var:StandBy
 - 
 o while(1)
 o begin
+o load param_dest:cm:9 param_src:dec_num:1
 o call faddr_dest:JointsThatShouldNotMove
 - 
 o if param_src:cm:2 lop:== param_src:bool_num:1 rop:then
@@ -510,7 +545,7 @@ x begin
 x load param_dest:motion:1:50 param_src:dec_num:11
 x call faddr_dest:WaitMotion
 x end
-- 
+o load param_dest:cm:9 param_src:dec_num:1
 o // param_text:CUSTOM MOVES
 o if param_src:cm:1 lop:== param_src:rc100z_num:256 rop:then
 o begin
@@ -647,7 +682,7 @@ o load param_dest:motion:-:50 param_src:dec_num:10
 o call faddr_dest:WaitMotion
 o end
 o // param_text:PUNCHES
-o elseif param_src:var:ReceiveData lop:== param_src:rc100z_num:32 rop:|| param_src:var:ReceiveData lop:== param_src:rc100z_num:16 rop:then
+o elseif param_src:cm:1 lop:== param_src:rc100z_num:32 rop:|| param_src:cm:1 lop:== param_src:rc100z_num:16 rop:then
 o begin
 o load param_dest:cm:17 param_src:scale_num:7
 - 
@@ -665,8 +700,9 @@ o begin
 o load param_dest:motion:-:50 param_src:dec_num:198
 o call faddr_dest:WaitMotion
 o end
-o elseif param_src:cm:1 lop:!= param_src:rc100z_num:32 rop:|| param_src:cm:1 lop:!= param_src:rc100z_num:16 rop:then
+o elseif param_src:cm:1 lop:== param_src:rc100z_num:48 rop:then
 o begin
+o load param_dest:cm:17 param_src:scale_num:7
 o jump laddr_dest:RemoteControl
 o end
 o end
@@ -674,6 +710,7 @@ o end
 o end
 o load param_dest:var:GyroUse param_src:bool_num:1
 o end
+o load param_dest:cm:9 param_src:dec_num:1
 o if param_src:var:Slip lop:!= param_src:dec_num:0 rop:then
 o begin
 o load param_dest:var:WalkCommand param_src:dec_num:0
@@ -884,6 +921,13 @@ o load param_dest:motion:5:52 param_src:dec_num:1024
 o load param_dest:motion:4:52 param_src:dec_num:1024
 o load param_dest:motion:6:52 param_src:dec_num:1024
 o load param_dest:motion:3:52 param_src:dec_num:1024
+o load param_dest:motion:19:52 param_src:dec_num:1024
+o load param_dest:motion:20:52 param_src:dec_num:1024
+- 
+o load param_dest:motor:4:102 param_src:dec_num:32
+o load param_dest:motor:4:103 param_src:dec_num:32
+o load param_dest:motor:3:102 param_src:dec_num:32
+o load param_dest:motor:3:103 param_src:dec_num:32
 o end
 - 
 o function faddr_src:ResetHandsOffset
@@ -896,6 +940,8 @@ o load param_dest:motion:5:52 param_src:dec_num:0
 o load param_dest:motion:6:52 param_src:dec_num:0
 o load param_dest:motion:1:52 param_src:dec_num:0
 o load param_dest:motion:2:52 param_src:dec_num:0
+o load param_dest:motion:19:52 param_src:dec_num:0
+o load param_dest:motion:20:52 param_src:dec_num:0
 o end
 - 
 - 
