@@ -562,6 +562,11 @@
         <unit main="seated_throw_back" mainSpeed="1.4" loop="1" exit="" exitSpeed="1" callSite="True" />
       </units>
     </Flow>
+    <Flow name="Seated_get_up" return="-1">
+      <units>
+        <unit main="Get up seated" mainSpeed="1" loop="1" exit="" exitSpeed="1" callSite="True" />
+      </units>
+    </Flow>
   </FlowRoot>
   <PageRoot>
     <Page name="2 Bravo">
@@ -2354,9 +2359,9 @@
       <steps>
         <step frame="62" pose="-27.15 27.15 -90.26 90.26 -103.65 103.65 -33.12 38.12 -7.46 7.46 -46.1 45.8 -79.69 79.39 29.55 -29.84 -7.46 7.46 20 -20 -36.6 41.71" />
         <step frame="101" pose="-27.15 27.15 -90.26 90.26 -103.65 103.65 -33.12 38.12 -7.46 7.46 -46.1 45.8 -79.69 79.39 29.55 -29.84 -7.46 7.46 20 -20 -36.6 41.71" />
-        <step frame="143" pose="-9.86 23.86 -79.89 90 -4.36 93.36 -10.12 77.12 -7.46 7.46 -46.1 45.8 -88.69 88.39 34.55 -34.84 -7.46 7.46 20 -20 -78.94 58.72" />
-        <step frame="161" pose="-9.86 23.86 -79.89 90 -4.36 93.36 -10.12 77.12 -7.46 7.46 -46.1 45.8 -88.69 88.39 34.55 -34.84 -7.46 7.46 20 -20 -78.94 58.72" />
-        <step frame="252" pose="-27.15 27.15 -90.26 90.26 -103.65 103.65 -33.12 38.12 -7.46 7.46 -46.1 45.8 -79.69 79.39 29.55 -29.84 -7.46 7.46 20 -20 -36.6 41.71" />
+        <step frame="132" pose="-9.86 23.86 -79.89 90 -4.36 93.36 -10.12 77.12 -7.46 7.46 -46.1 45.8 -88.69 88.39 34.55 -34.84 -7.46 7.46 20 -20 -78.94 58.72" />
+        <step frame="150" pose="-9.86 23.86 -79.89 90 -4.36 93.36 -10.12 77.12 -7.46 7.46 -46.1 45.8 -88.69 88.39 34.55 -34.84 -7.46 7.46 20 -20 -78.94 58.72" />
+        <step frame="230" pose="-27.15 27.15 -90.26 90.26 -103.65 103.65 -33.12 38.12 -7.46 7.46 -46.1 45.8 -79.69 79.39 29.55 -29.84 -7.46 7.46 20 -20 -36.6 41.71" />
       </steps>
     </Page>
     <Page name="left-punch">
@@ -2536,6 +2541,7 @@
   <BucketRoot>
     <Bucket name="motion group (1)">
       <callFlows>
+        <callFlow callIndex="1" subIndex="0" exitIndex="0" flow="Seated_get_up" />
         <callFlow callIndex="2" subIndex="0" exitIndex="0" flow="2 Bravo" />
         <callFlow callIndex="5" subIndex="0" exitIndex="0" flow="5 Push up" />
         <callFlow callIndex="6" subIndex="0" exitIndex="0" flow="6 Hand standing" />
@@ -2543,8 +2549,6 @@
         <callFlow callIndex="8" subIndex="0" exitIndex="0" flow="8 L blocking" />
         <callFlow callIndex="9" subIndex="0" exitIndex="0" flow="9 L kick" />
         <callFlow callIndex="10" subIndex="0" exitIndex="0" flow="10 R kick" />
-        <callFlow callIndex="11" subIndex="0" exitIndex="0" flow="11 R attack" />
-        <callFlow callIndex="12" subIndex="0" exitIndex="0" flow="12 L attack" />
         <callFlow callIndex="14" subIndex="0" exitIndex="0" flow="14 Defence" />
         <callFlow callIndex="15" subIndex="0" exitIndex="0" flow="15 Sit down" />
         <callFlow callIndex="16" subIndex="0" exitIndex="0" flow="16 Stand up" />
@@ -2712,8 +2716,6 @@
         <callFlow callIndex="180" subIndex="0" exitIndex="0" flow="61 BRT_E_R" />
         <callFlow callIndex="181" subIndex="1" exitIndex="0" flow="61 BRT_E_R" />
         <callFlow callIndex="182" subIndex="0" exitIndex="0" flow="62 Balance" />
-        <callFlow callIndex="189" subIndex="0" exitIndex="0" flow="hip move" />
-        <callFlow callIndex="190" subIndex="0" exitIndex="0" flow="electric 1" />
         <callFlow callIndex="191" subIndex="0" exitIndex="0" flow="sit" />
         <callFlow callIndex="192" subIndex="0" exitIndex="0" flow="laydown" />
         <callFlow callIndex="194" subIndex="0" exitIndex="0" flow="1 duckdown" />

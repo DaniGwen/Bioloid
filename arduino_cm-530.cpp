@@ -41,7 +41,7 @@ Pixy2 pixy;            // Create a Pixy camera object
 PIDLoop panLoop(400, 0, 400, true);
 PIDLoop tiltLoop(500, 0, 500, true);
 SharpIR sensor = SharpIR(distanceSensor, 1080); // Distance sensor
-//auto timerElapsed = timer_create_default();     // create a timer with default settings
+//auto timerElapsed = timer_create_default();   // create a timer with default settings
 Commander command = Commander();
 
 double maxDeviation = 0.75 * (X_AXIS_MID / 2);  // Determines the max deviation from the center
@@ -63,16 +63,16 @@ int receivedCM530 = 0;
 // Instructions to move forward, left, right, and back.
 const uint8_t moveFoward[6] = {0xAA, 0x01, 0x0E,
                                0xAA, 0x00, 0x1E};
-const uint8_t *moveFoward_ptr = moveFoward;
+const uint8_t *buttonU_ptr = moveFoward;
 const uint8_t moveLeft[6] = {0xAA, 0x04, 0x5E,
                              0xAA, 0x00, 0x1E};
-const uint8_t *moveLeft_ptr = moveLeft;
+const uint8_t *buttonL_ptr = moveLeft;
 const uint8_t moveRight[6] = {0xAA, 0x08, 0x1E,
                               0xAA, 0x00, 0x1E};
-const uint8_t *moveRight_ptr = moveRight;
+const uint8_t *buttonR_ptr = moveRight;
 const uint8_t moveBack[6] = {0xAA, 0x02, 0x7E,
                              0xAA, 0x00, 0x1E};
-const uint8_t *moveBack_ptr = moveBack;
+const uint8_t *buttonD_ptr = moveBack;
 
 // 3 => 64 decimal
 const uint8_t button3[12] = {0xAA, 0x40, 0x1E,
@@ -159,6 +159,7 @@ void moveRobotBack();
 void slideRobotLeft();
 void slideRobotRight();
 void robotKick();
+void robotStandUp();
 
 // Other methods
 void CheckPixyFramerate();
@@ -255,10 +256,13 @@ void setup()
   fsmState = ROBO_FSM_FIND;
 
   //Wait untill CM-530 is ready and running.
-  // while (receivedCM530 == 0)
-  // {
-  //   receivedCM530 = ReceiveDataFromCM530();
-  // }
+  while (receivedCM530 == 0)
+  {
+    receivedCM530 = ReceiveDataFromCM530();
+  }
+
+  // Get up
+  robotStandUp();
 }
 
 //**************************************************************************************************************************************
@@ -266,9 +270,9 @@ void setup()
 //**************************************************************************************************************************************
 void loop()
 {
-  PixyDetectObject();                 // Read PIXY and Updates servos
-  ReceiveDataFromCM530();             // Read date from CM-530
-  irSensor_value = sensor.distance(); // Distance in centimeters;
+  irSensor_value = sensor.distance(); // Read Distance in centimeters;
+  PixyDetectObject();                 // Read PIXY blocks and Updates servos
+  ReceiveDataFromCM530();             // Read data from CM-530
   CheckPixyFramerate();               // Turns lamp if FPS is < 30
 
   //***************************
@@ -587,13 +591,13 @@ void performKick()
 void moveRobotForward()
 {
   SendDataMessage();
-  Serial1.write(moveFoward_ptr, 3);
+  Serial1.write(buttonU_ptr, 3);
   delay(210);
-  Serial1.write(moveFoward_ptr + 3, 3);
+  Serial1.write(buttonU_ptr + 3, 3);
   delay(300);
-  Serial1.write(moveFoward_ptr, 3);
+  Serial1.write(buttonU_ptr, 3);
   delay(210);
-  Serial1.write(moveFoward_ptr + 3, 3);
+  Serial1.write(buttonU_ptr + 3, 3);
 }
 
 //**************************************************************************************************
@@ -602,9 +606,9 @@ void moveRobotForward()
 void moveRobotLeft()
 {
   SendDataMessage();
-  Serial1.write(moveLeft_ptr, 3);
+  Serial1.write(buttonL_ptr, 3);
   delay(210);
-  Serial1.write(moveLeft_ptr + 3, 3);
+  Serial1.write(buttonL_ptr + 3, 3);
 }
 
 //**************************************************************************************************
@@ -613,9 +617,9 @@ void moveRobotLeft()
 void moveRobotRight()
 {
   SendDataMessage();
-  Serial1.write(moveRight_ptr, 3);
+  Serial1.write(buttonR_ptr, 3);
   delay(210);
-  Serial1.write(moveRight_ptr + 3, 3);
+  Serial1.write(buttonR_ptr + 3, 3);
 }
 
 //**************************************************************************************************
@@ -623,9 +627,9 @@ void moveRobotRight()
 //**************************************************************************************************
 void moveRobotBack()
 {
-  Serial1.write(moveBack_ptr, 3);
+  Serial1.write(buttonD_ptr, 3);
   delay(210);
-  Serial1.write(moveBack_ptr + 3, 3);
+  Serial1.write(buttonD_ptr + 3, 3);
   SendDataMessage();
 }
 
@@ -664,12 +668,7 @@ void SendCommand(uint8_t button[0])
 {
   Serial1.write(button, 3);
   delay(210);
-  int byteSend = Serial1.write(button + 3, 3);
-
-  oled.clearField(10, 7, 6);
-  oled.setRow(7);
-  oled.setCol(0);
-  oled.print(F("Com. send"));
+  Serial1.write(button + 3, 3);
 }
 
 // Count the minutes and seconds
@@ -878,12 +877,24 @@ int ReceiveDataFromCM530()
 // Check if frame rate is low then that means the lighting is low, we turn the lights on.
 void CheckPixyFramerate()
 {
-  if (pixy.getFPS() < 38)
+  if (pixy.getFPS() < 35)
   {
     pixy.setLamp(1, 1);
   }
   else
   {
     pixy.setLamp(0, 0);
+  }
+}
+
+void robotStandUp()
+{
+  if (sensor.distance() < 20)
+  {
+    SendCommand(buttonU_ptr);
+  }
+  else
+  {
+    SendCommand(buttonD_ptr);
   }
 }

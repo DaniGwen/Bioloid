@@ -10,10 +10,8 @@ o begin
 o // param_text:Set up at IR channel broadcast. (Can control with every channel) 
 o load param_dest:cm:22 param_src:channel_num:0
 - 
-o // param_text:SEND DATA TO ARDUINO TO LET IT KNOW WE ARE READY
-o load param_dest:cm:9 param_src:dec_num:1
 - 
-x jump laddr_dest:RemoteControl
+o jump laddr_dest:Stand_Up
 - 
 x call faddr_dest:CheckHands
 - 
@@ -61,31 +59,30 @@ o load param_dest:var:IsUp param_src:bool_num:0
 o call faddr_dest:ComplianceMarginID1_6
 - 
 o // param_text:Initial stand up
-o while param_src:var:IsUp lop:!= param_src:bool_num:1 rop:then
+o label laddr_src:Stand_Up
+o while(1)
 o begin
-o if param_src:aux:5:64 lop:> param_src:dec_num:300 rop:&& param_src:aux:5:64 lop:< param_src:dec_num:400 rop:then
+o load param_dest:cm:9 param_src:dec_num:1
+- 
+o if param_src:cm:2 lop:== param_src:bool_num:1 rop:then
+o begin
+o if param_src:cm:1 lop:== param_src:rc100z_num:1 rop:then
 o begin
 o load param_dest:cm:17 param_src:scale_num:0
 o call faddr_dest:Face_GetUp
 o load param_dest:var:IsUp param_src:bool_num:1
 o end
-o if param_src:aux:2:67 lop:> param_src:dec_num:10 rop:then
-o begin
-o load param_dest:cm:17 param_src:scale_num:0
-o // param_text:Taking the initial position
-o call faddr_dest:Initial_pose
-o load param_dest:var:IsUp param_src:bool_num:1
-o end
 o // param_text:GetUp from back
-o if param_src:cm:20 lop:== param_src:dec_num:2 rop:then
+o elseif param_src:cm:1 lop:== param_src:rc100z_num:2 rop:then
 o begin
 o load param_dest:cm:17 param_src:scale_num:0
 o call faddr_dest:Back_GetUp
 o load param_dest:var:IsUp param_src:bool_num:1
 o end
-o elseif param_src:cm:2 lop:== param_src:bool_num:1 rop:then
+o end
+o elseif param_src:var:IsUp lop:== param_src:bool_num:1 rop:then
 o begin
-o jump laddr_dest:RemoteControl
+o jump laddr_dest:DemoMode
 o end
 o end
 - 
@@ -157,7 +154,6 @@ x call faddr_dest:WaitTimer
 x load param_dest:cm:19 param_src:dec_num:0
 x load param_dest:cm:5 param_src:var:WaitDemo
 x end
-o load param_dest:cm:9 param_src:dec_num:0
 - 
 o load param_dest:motor:254:107 param_src:dir_num:82
 o load param_dest:motor:254:107 param_src:dir_num:1106
@@ -210,8 +206,10 @@ o load param_dest:motor:5:106 param_src:position_num:247
 o load param_dest:cm:9 param_src:dec_num:1
 o end
 o // param_text:SIT DOWN
-o elseif param_src:aux:2:67 lop:> param_src:dec_num:0 rop:then
+o elseif param_src:cm:19 lop:== param_src:dec_num:3 rop:then
 o begin
+o load param_dest:cm:19 param_src:dec_num:0
+- 
 o load param_dest:cm:17 param_src:scale_num:43
 o load param_dest:motion:-:50 param_src:dec_num:191
 o call faddr_dest:WaitMotion
@@ -220,26 +218,18 @@ o load param_dest:motor:254:100 param_src:bool_num:0
 o while(1)
 o begin
 o // param_text:Get up
-o if param_src:cm:20 lop:== param_src:dec_num:2 rop:|| param_src:aux:5:64 lop:> param_src:dec_num:550 rop:then
+o if param_src:cm:19 lop:== param_src:dec_num:3 rop:then
 o begin
 o load param_dest:cm:18 param_src:buzzertime_num:255
 o load param_dest:cm:17 param_src:melody_num:12
 o load param_dest:motor:254:100 param_src:bool_num:1
-o call faddr_dest:Back_GetUp
+o call faddr_dest:GetUp_From_Seated
 o break
 o end
-o // param_text:Flash leds and sounds
-o elseif param_src:aux:5:64 lop:> param_src:dec_num:200 rop:&& param_src:aux:5:64 lop:< param_src:dec_num:300 rop:then
-o begin
-o load param_dest:cm:18 param_src:buzzertime_num:255
-o load param_dest:cm:17 param_src:melody_num:20
-o load param_dest:motor:254:101 param_src:bool_num:1
-o load param_dest:cm:5 param_src:timer_num:16
-o call faddr_dest:WaitTimer
-o load param_dest:motor:254:101 param_src:bool_num:0
-o end
 o // param_text:Play seated
-o elseif param_src:aux:2:67 lop:> param_src:dec_num:10 rop:then
+o elseif param_src:cm:2 lop:== param_src:bool_num:1 rop:then
+o begin
+o if param_src:cm:1 lop:== param_src:rc100z_num:8 rop:then
 o begin
 o // param_text:SEATED READY TO CATCH
 o load param_dest:motion:-:50 param_src:dec_num:206
@@ -247,12 +237,15 @@ o call faddr_dest:WaitMotion
 - 
 o while(1)
 o begin
-o if param_src:aux:5:64 lop:> param_src:dec_num:280 rop:then
+o if param_src:cm:2 lop:== param_src:bool_num:1 rop:then
+o begin
+o if param_src:cm:1 lop:== param_src:rc100z_num:24 rop:then
 o begin
 o // param_text:Catch
 o load param_dest:cm:17 param_src:scale_num:1
 o load param_dest:motion:-:50 param_src:dec_num:207
 o call faddr_dest:WaitMotion
+- 
 o if param_src:aux:2:67 lop:> param_src:dec_num:10 rop:then
 o begin
 o // param_text:CATCH position
@@ -276,6 +269,8 @@ o end
 o elseif param_src:aux:2:67 lop:> param_src:dec_num:10 rop:then
 o begin
 o break
+o end
+o end
 o end
 o end
 o end
@@ -1091,6 +1086,12 @@ o end
 o function faddr_src:Back_GetUp
 o begin
 o load param_dest:motion:-:50 param_src:dec_num:18
+o call faddr_dest:WaitMotion
+o end
+- 
+o function faddr_src:GetUp_From_Seated
+o begin
+o load param_dest:motion:-:50 param_src:dec_num:1
 o call faddr_dest:WaitMotion
 o end
 - 
