@@ -25,6 +25,9 @@
 #define ROBO_FSM_POSITION 2 // State for aligning robot with ball
 #define ROBO_FSM_KICK 3     // State for kicking the ball
 
+// Serial values received from CM-530
+#define CM_530_READY 10
+
 // Define proper RST_PIN if required.
 #define RST_PIN -1
 //**************************************************************************************************
@@ -163,12 +166,14 @@ void robotStandUp();
 
 // Other methods
 void CheckPixyFramerate();
+void PrintDataFromCM530(int received);
 int ReceiveDataFromCM530();
 void PrintIRSensorValue(int value);
 void SendCommand(uint8_t button[0]);
-void SendDataMessage();
+void SendDataMessage(char button[]);
 void LightsOn();
 void LightsOff();
+void PrintPanPosition();
 
 // PIXY2 methods
 void Print_Y_Axis_Value(int y_axis);
@@ -213,19 +218,19 @@ void setup()
 
   // start serial to CM-530 (1900 baud)
   Serial1.begin(1900);
-  oled.println(F("Start SERIAL 1900"));
+  oled.println(F("(CM-530) SERIAL 1900"));
   oled.println();
-  delay(100);
 
   delay(2000);
 
+  oled.println(F("Initializing PIXY 2.."));
+  oled.println();
   Serial2.begin(115200); // Start serial PIXY2
   pixy.init();           // Initialize Pixy camera
   pixy.setLamp(0, 0);    // Head leds (upper-lights, lower light)
   pixy.changeProg("color_connected_components");
-  oled.println(F("Initializing PIXY 2.."));
-  oled.println();
-  delay(300);
+
+  delay(200);
 
   // Flash blue leds
   oled.println(F("Checking LIGHTS.."));
@@ -241,7 +246,7 @@ void setup()
   oled.setCol(40);
   oled.set2X();
   oled.println(F("READY!"));
-  delay(2000);
+  delay(1600);
   oled.clear(); // Clear display
 
   // call the do_count function every 1000 millis (1 second)
@@ -256,13 +261,13 @@ void setup()
   fsmState = ROBO_FSM_FIND;
 
   //Wait untill CM-530 is ready and running.
-  while (receivedCM530 == 0)
-  {
-    receivedCM530 = ReceiveDataFromCM530();
-  }
+  // while (receivedCM530 == 0)
+  // {
+  //   receivedCM530 = ReceiveDataFromCM530();
+  // }
 
   // Get up
-  robotStandUp();
+  //robotStandUp();
 }
 
 //**************************************************************************************************************************************
@@ -272,13 +277,13 @@ void loop()
 {
   irSensor_value = sensor.distance(); // Read Distance in centimeters;
   PixyDetectObject();                 // Read PIXY blocks and Updates servos
-  ReceiveDataFromCM530();             // Read data from CM-530
-  CheckPixyFramerate();               // Turns lamp if FPS is < 30
+  //ReceiveDataFromCM530();             // Read data from CM-530
+  CheckPixyFramerate(); // Turns lamp if FPS is < 30
 
   //***************************
   // PRINT DATA ON OLED DISPLAY
   //***************************
-  //PrintPanPosition();
+  PrintPanPosition();
   PrintIRSensorValue(irSensor_value);
 
   //  if (irSensor_value < 8 )
@@ -402,42 +407,52 @@ void PixyDetectObject()
     // set pan and tilt servos
     pixy.setServos(panLoop.m_command, tiltLoop.m_command);
 
-    // Test
-    if (irSensor_value < 7)
+    // PLAY WITH HANDS
+    if (irSensor_value < 12)
     {
-      if (pixy.ccc.blocks[0].m_signature == 2)
+      // Left hand up
+      if (panLoop.m_command > 600)
       {
-
-        //open left hand
-        SendCommand(buttonR1_ptr);
-
-        // wait feedback
-        while (receivedCM530 == 0)
-        {
-          receivedCM530 = ReceiveDataFromCM530();
-        }
-
-        //close left hand
         SendCommand(buttonU3_ptr);
-
-        receivedCM530 = 0;
+        char buttonU3[] = "U3";
+        SendDataMessage(buttonU3);
+        pixy.setServos(800, 750);
       }
-      else if (pixy.ccc.blocks[0].m_signature == 3)
+      // Right hand up
+      else if(panLoop.m_command < 400)
       {
-        // open right hand
-        SendCommand(buttonR2_ptr);
-
-        // wait feedback
-        while (receivedCM530 == 0)
-        {
-          receivedCM530 = ReceiveDataFromCM530();
-        }
-
-        //close right hand
         SendCommand(buttonU2_ptr);
-
-        receivedCM530 = 0;
+        char buttonU2[] = "U2";
+        SendDataMessage(buttonU2);
+        pixy.setServos(200, 750);
       }
+
+      delay(2400);
+
+      while (true)
+      {
+        pixy.ccc.getBlocks();
+
+        if (pixy.ccc.numBlocks)
+        {
+          char buttonU[] = "U";
+          SendDataMessage(buttonU);
+          SendCommand(buttonU_ptr);
+          break;
+        }
+      }
+
+      // Standby while we see the block
+      while (pixy.ccc.getBlocks() > 0)
+      {
+      }
+
+      //Open hand
+      char buttonD[] = "D";
+      SendDataMessage(buttonD);
+      SendCommand(buttonD_ptr);
+
+      receivedCM530 = 0;
     }
 
     //Print information
@@ -445,7 +460,7 @@ void PixyDetectObject()
     oled.setCol(0);
     oled.setRow(6);
     oled.print(F("TRACKING: "));
-    oled.print(pixy.ccc.blocks[1].m_signature);
+    oled.print(pixy.ccc.blocks[0].m_signature);
 
 #if 0 // for debugging
     sprintf(buf, "%ld %ld %ld %ld", rotateLoop.m_command, translateLoop.m_command, left, right);
@@ -590,7 +605,9 @@ void performKick()
 //**************************************************************************************************
 void moveRobotForward()
 {
-  SendDataMessage();
+  char button[] = "U";
+  SendDataMessage(button);
+
   Serial1.write(buttonU_ptr, 3);
   delay(210);
   Serial1.write(buttonU_ptr + 3, 3);
@@ -605,7 +622,9 @@ void moveRobotForward()
 //**************************************************************************************************
 void moveRobotLeft()
 {
-  SendDataMessage();
+  char button[] = "L";
+  SendDataMessage(button);
+
   Serial1.write(buttonL_ptr, 3);
   delay(210);
   Serial1.write(buttonL_ptr + 3, 3);
@@ -616,7 +635,9 @@ void moveRobotLeft()
 //**************************************************************************************************
 void moveRobotRight()
 {
-  SendDataMessage();
+  char button[] = "R";
+  SendDataMessage(button);
+
   Serial1.write(buttonR_ptr, 3);
   delay(210);
   Serial1.write(buttonR_ptr + 3, 3);
@@ -630,7 +651,9 @@ void moveRobotBack()
   Serial1.write(buttonD_ptr, 3);
   delay(210);
   Serial1.write(buttonD_ptr + 3, 3);
-  SendDataMessage();
+
+  char button[] = "D";
+  SendDataMessage(button);
 }
 
 //**************************************************************************************************
@@ -661,7 +684,9 @@ void robotKick()
   Serial1.write(button4_ptr, 3);
   delay(210);
   Serial1.write(button4_ptr + 3, 3);
-  SendDataMessage();
+
+  char button[] = "4";
+  SendDataMessage(button);
 }
 
 void SendCommand(uint8_t button[0])
@@ -711,13 +736,13 @@ bool do_count(void *)
 //                                            OLED actions
 //**************************************************************************************************
 // Command send display
-void SendDataMessage()
+void SendDataMessage(char button[])
 {
   oled.clearField(15, 3, 10); // clearField(col, row , int - number of characters to delete)
   oled.setCol(0);
   oled.setRow(3);
   oled.print(F("Command:"));
-  oled.print(F(" SEND!"));
+  oled.print(button);
 }
 
 void DisplaySeconds()
@@ -877,7 +902,7 @@ int ReceiveDataFromCM530()
 // Check if frame rate is low then that means the lighting is low, we turn the lights on.
 void CheckPixyFramerate()
 {
-  if (pixy.getFPS() < 35)
+  if (pixy.getFPS() < 20)
   {
     pixy.setLamp(1, 1);
   }

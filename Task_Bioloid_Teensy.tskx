@@ -11,7 +11,7 @@ o // param_text:Set up at IR channel broadcast. (Can control with every channel)
 o load param_dest:cm:22 param_src:channel_num:0
 - 
 - 
-o jump laddr_dest:Stand_Up
+o jump laddr_dest:DemoMode
 - 
 x call faddr_dest:CheckHands
 - 
@@ -55,11 +55,11 @@ o end
 o end
 o end
 - 
-o load param_dest:var:IsUp param_src:bool_num:0
-o call faddr_dest:ComplianceMarginID1_6
 - 
 o // param_text:Initial stand up
 o label laddr_src:Stand_Up
+o load param_dest:var:IsUp param_src:bool_num:0
+- 
 o while(1)
 o begin
 o load param_dest:cm:9 param_src:dec_num:1
@@ -126,14 +126,19 @@ o load param_dest:cm:18 param_src:buzzertime_num:255
 o load param_dest:cm:17 param_src:melody_num:12
 - 
 o // param_text:Setting the Initial Position
-o load param_dest:motion:1:50 param_src:dec_num:21
-o call faddr_dest:WaitMotion
+x load param_dest:motion:1:50 param_src:dec_num:21
+x call faddr_dest:WaitMotion
+- 
+o call faddr_dest:InitGripperControl
+o call faddr_dest:ComplianceMarginID1_6
 - 
 o load param_dest:var:DemoMotion param_src:dec_num:1
 o load param_dest:cm:19 param_src:dec_num:0
 - 
 o while(1)
 o begin
+o call faddr_dest:Check_DMX_Temps
+- 
 x if param_src:cm:19 lop:> param_src:dec_num:0 rop:then
 x begin
 x load param_dest:var:RepeatCount param_src:cm:19
@@ -157,53 +162,69 @@ x end
 - 
 o load param_dest:motor:254:107 param_src:dir_num:82
 o load param_dest:motor:254:107 param_src:dir_num:1106
+- 
 o // param_text:Left  Hand up
 o if param_src:cm:1 lop:== param_src:rc100z_num:65 rop:then
 o begin
-o load param_dest:motor:22:106 param_src:position_num:449
-o load param_dest:motor:4:106 param_src:position_num:735
-o load param_dest:motor:2:106 param_src:position_num:500
-o load param_dest:motor:6:106 param_src:position_num:589
-o // param_text:Fingers
-o load param_dest:motor:19:106 param_src:position_num:489
+o call faddr_dest:LeftArmUp
+o call faddr_dest:OpenLeftHand
+- 
+o while(1)
+o begin
+o if param_src:cm:1 lop:== param_src:rc100z_num:1 rop:then
+o begin
+o load param_dest:cm:17 param_src:scale_num:0
+o call faddr_dest:WaitBuzzer
+o break
 o end
+o end
+- 
+o call faddr_dest:RetractionLeftHand
+- 
+o while param_src:cm:1 lop:!= param_src:rc100z_num:2 rop:then
+o begin
+o load param_dest:cm:9 param_src:dec_num:10
+o end
+- 
+o load param_dest:cm:17 param_src:scale_num:0
+o call faddr_dest:WaitBuzzer
+- 
+o call faddr_dest:OpenLeftHand
+o load param_dest:cm:5 param_src:timer_num:7
+o call faddr_dest:WaitTimer
+o call faddr_dest:LeftArmDown
+o end
+- 
 o // param_text:Right  Hand up
-o elseif param_src:cm:1 lop:== param_src:rc100z_num:36 rop:then
+o elseif param_src:cm:1 lop:== param_src:rc100z_num:33 rop:then
 o begin
-o load param_dest:motor:5:106 param_src:position_num:436
-o load param_dest:motor:21:106 param_src:position_num:570
-o load param_dest:motor:3:106 param_src:position_num:335
-o load param_dest:motor:1:106 param_src:position_num:530
-o // param_text:Fingers
-o load param_dest:motor:20:106 param_src:position_num:516
-o end
-o // param_text:Left Hand down
-o elseif param_src:aux:1:63 lop:> param_src:dec_num:20 rop:then
-o begin
-o // param_text:Fingers
-o load param_dest:motor:19:106 param_src:position_num:611
-o load param_dest:cm:5 param_src:timer_num:8
-o call faddr_dest:WaitTimer
-o load param_dest:motor:22:106 param_src:position_num:516
-o load param_dest:motor:4:106 param_src:position_num:732
-o load param_dest:motor:2:106 param_src:position_num:763
-o load param_dest:motor:6:106 param_src:position_num:728
+o call faddr_dest:RightArmUp
+o call faddr_dest:OpenRightHand
 - 
-o load param_dest:cm:9 param_src:dec_num:1
-o end
-o // param_text:Right  Hand down
-o elseif param_src:aux:6:63 lop:> param_src:dec_num:20 rop:then
+o while(1)
 o begin
-o // param_text:Fingers
-o load param_dest:motor:20:106 param_src:position_num:410
-o load param_dest:cm:5 param_src:timer_num:8
-o call faddr_dest:WaitTimer
-o load param_dest:motor:21:106 param_src:position_num:516
-o load param_dest:motor:3:106 param_src:position_num:277
-o load param_dest:motor:1:106 param_src:position_num:316
-o load param_dest:motor:5:106 param_src:position_num:247
+o if param_src:cm:1 lop:== param_src:rc100z_num:1 rop:then
+o begin
+o load param_dest:cm:17 param_src:scale_num:0
+o call faddr_dest:WaitBuzzer
+o break
+o end
+o end
 - 
-o load param_dest:cm:9 param_src:dec_num:1
+o call faddr_dest:RetractionRightHand
+- 
+o while param_src:cm:1 lop:!= param_src:rc100z_num:2 rop:then
+o begin
+o load param_dest:cm:9 param_src:dec_num:10
+o end
+- 
+o load param_dest:cm:17 param_src:scale_num:0
+o call faddr_dest:WaitBuzzer
+- 
+o call faddr_dest:OpenRightHand
+o load param_dest:cm:5 param_src:timer_num:7
+o call faddr_dest:WaitTimer
+o call faddr_dest:RightArmDown
 o end
 o // param_text:SIT DOWN
 o elseif param_src:cm:19 lop:== param_src:dec_num:3 rop:then
@@ -278,7 +299,7 @@ o end
 o end
 - 
 o // param_text:Go to Remote control
-o if param_src:aux:2:67 lop:> param_src:dec_num:400 rop:then
+o if param_src:cm:19 lop:== param_src:dec_num:6 rop:then
 o begin
 o jump laddr_dest:RemoteControl
 o end
@@ -758,6 +779,23 @@ o end
 - 
 o // param_text:                                                                                                     FUNCTIONS                                                            FUNCTIONS                                                                      FUNCTIONS
 - 
+o function faddr_src:Check_DMX_Temps
+o begin
+o for param_var:i param_src:dec_num:1 param_src:dec_num:22
+o begin
+o if param_src:custom:b:i:43 lop:> param_src:dec_num:67 rop:then
+o begin
+o load param_dest:cm:17 param_src:scale_num:24
+o call faddr_dest:WaitBuzzer
+o load param_dest:motor:254:101 param_src:bool_num:1
+o end
+o else
+o begin
+o load param_dest:motor:254:101 param_src:bool_num:0
+o end
+o end
+o end
+- 
 o function faddr_src:LegsSpeedForward
 o begin
 o load param_dest:var:LegsSpeedCW param_src:dir_num:1229
@@ -955,24 +993,24 @@ o end
 o function faddr_src:InitGripperControl
 o begin
 o // param_text:Set up not to be affected by the Motion Play
-o load param_dest:motion:1:52 param_src:dec_num:1024
-o load param_dest:motion:2:52 param_src:dec_num:1024
-o load param_dest:motion:3:52 param_src:dec_num:1024
-o load param_dest:motion:4:52 param_src:dec_num:1024
-o load param_dest:motion:5:52 param_src:dec_num:1024
-o load param_dest:motion:6:52 param_src:dec_num:1024
-o load param_dest:motion:19:52 param_src:dec_num:1024
-o load param_dest:motion:20:52 param_src:dec_num:1024
+x load param_dest:motion:1:52 param_src:dec_num:1024
+x load param_dest:motion:2:52 param_src:dec_num:1024
+x load param_dest:motion:3:52 param_src:dec_num:1024
+x load param_dest:motion:4:52 param_src:dec_num:1024
+x load param_dest:motion:5:52 param_src:dec_num:1024
+x load param_dest:motion:6:52 param_src:dec_num:1024
+x load param_dest:motion:19:52 param_src:dec_num:1024
+x load param_dest:motion:20:52 param_src:dec_num:1024
 - 
 o // param_text:Arm Move Speed Setting
 o load param_dest:var:ArmSpeed param_src:dec_num:100
 - 
 o // param_text:Gripper Speed Setting
-o load param_dest:var:GripperSpeed param_src:dec_num:200
+o load param_dest:var:GripperSpeed param_src:dec_num:210
 - 
 o // param_text:Set the power of the Gripper
-o load param_dest:motor:19:108 param_src:dec_num:400
-o load param_dest:motor:20:108 param_src:dec_num:400
+o load param_dest:motor:19:108 param_src:dec_num:500
+o load param_dest:motor:20:108 param_src:dec_num:500
 - 
 o // param_text:Gripper flexibility
 o load param_dest:motor:19:104 param_src:bin_num:128
@@ -982,8 +1020,8 @@ o load param_dest:motor:20:105 param_src:bin_num:128
 - 
 x call faddr_dest:RightArmUp
 x call faddr_dest:LeftArmUp
-o call faddr_dest:RetractionRightHand
-o call faddr_dest:RetractionLeftHand
+x call faddr_dest:RetractionRightHand
+x call faddr_dest:RetractionLeftHand
 o end
 - 
 o function faddr_src:RightArmUp
@@ -991,9 +1029,9 @@ o begin
 o load param_dest:motor:1:107 param_src:var:ArmSpeed
 o load param_dest:motor:3:107 param_src:var:ArmSpeed
 o load param_dest:motor:5:107 param_src:var:ArmSpeed
-o load param_dest:motor:1:106 param_src:position_num:538
-o load param_dest:motor:3:106 param_src:position_num:269
-o load param_dest:motor:5:106 param_src:position_num:409
+o load param_dest:motor:1:106 param_src:position_num:389
+o load param_dest:motor:3:106 param_src:position_num:289
+o load param_dest:motor:5:106 param_src:position_num:404
 o end
 - 
 o function faddr_src:RightArmDown
@@ -1002,14 +1040,27 @@ o load param_dest:motor:1:107 param_src:var:ArmSpeed
 o load param_dest:motor:3:107 param_src:var:ArmSpeed
 o load param_dest:motor:5:107 param_src:var:ArmSpeed
 o load param_dest:motor:1:106 param_src:position_num:224
-o load param_dest:motor:3:106 param_src:position_num:323
-o load param_dest:motor:5:106 param_src:position_num:413
+o load param_dest:motor:3:106 param_src:position_num:293
+o load param_dest:motor:5:106 param_src:position_num:228
 o end
 - 
 o function faddr_src:RetractionRightHand
 o begin
 o load param_dest:motor:20:107 param_src:var:GripperSpeed
-o load param_dest:motor:20:106 param_src:position_num:427
+o load param_dest:motor:20:106 param_src:position_num:399
+- 
+o load param_dest:cm:5 param_src:timer_num:8
+o call faddr_dest:WaitTimer
+- 
+o // param_text:gesture 
+o load param_dest:motor:5:107 param_src:var:ArmSpeed
+o load param_dest:motor:5:106 param_src:position_num:292
+o load param_dest:motor:21:107 param_src:var:ArmSpeed
+o load param_dest:motor:21:106 param_src:position_num:442
+o load param_dest:cm:5 param_src:timer_num:13
+o call faddr_dest:WaitTimer
+o load param_dest:motor:5:106 param_src:position_num:416
+o load param_dest:motor:21:106 param_src:position_num:512
 o end
 - 
 o function faddr_src:OpenRightHand
@@ -1023,9 +1074,9 @@ o begin
 o load param_dest:motor:2:107 param_src:var:ArmSpeed
 o load param_dest:motor:4:107 param_src:var:ArmSpeed
 o load param_dest:motor:6:107 param_src:var:ArmSpeed
-o load param_dest:motor:2:106 param_src:position_num:486
+o load param_dest:motor:2:106 param_src:position_num:599
 o load param_dest:motor:4:106 param_src:position_num:756
-o load param_dest:motor:6:106 param_src:position_num:615
+o load param_dest:motor:6:106 param_src:position_num:633
 o end
 - 
 o function faddr_src:LeftArmDown
@@ -1033,9 +1084,9 @@ o begin
 o load param_dest:motor:2:107 param_src:var:ArmSpeed
 o load param_dest:motor:4:107 param_src:var:ArmSpeed
 o load param_dest:motor:6:107 param_src:var:ArmSpeed
-o load param_dest:motor:2:106 param_src:position_num:799
-o load param_dest:motor:4:106 param_src:position_num:702
-o load param_dest:motor:6:106 param_src:position_num:612
+o load param_dest:motor:2:106 param_src:position_num:755
+o load param_dest:motor:4:106 param_src:position_num:731
+o load param_dest:motor:6:106 param_src:position_num:772
 o end
 - 
 o function faddr_src:OpenLeftHand
@@ -1047,7 +1098,20 @@ o end
 o function faddr_src:RetractionLeftHand
 o begin
 o load param_dest:motor:19:107 param_src:var:GripperSpeed
-o load param_dest:motor:19:106 param_src:position_num:599
+o load param_dest:motor:19:106 param_src:position_num:623
+- 
+o load param_dest:cm:5 param_src:timer_num:8
+o call faddr_dest:WaitTimer
+- 
+o // param_text:gesture 
+o load param_dest:motor:6:107 param_src:var:ArmSpeed
+o load param_dest:motor:6:106 param_src:position_num:723
+o load param_dest:motor:22:107 param_src:var:ArmSpeed
+o load param_dest:motor:22:106 param_src:position_num:582
+o load param_dest:cm:5 param_src:timer_num:13
+o call faddr_dest:WaitTimer
+o load param_dest:motor:6:106 param_src:position_num:616
+o load param_dest:motor:22:106 param_src:position_num:512
 o end
 - 
 o function faddr_src:ComplianceMarginID1_6
