@@ -226,6 +226,48 @@ o load param_dest:cm:5 param_src:timer_num:7
 o call faddr_dest:WaitTimer
 o call faddr_dest:RightArmDown
 o end
+- 
+o elseif param_src:cm:1 lop:== param_src:rc100z_num:9 rop:then
+o begin
+o call faddr_dest:RightArmUp
+o call faddr_dest:OpenRightHand
+o call faddr_dest:LeftArmUp
+o call faddr_dest:OpenLeftHand
+- 
+o load param_dest:var:is_left param_src:bool_num:0
+o load param_dest:var:is_right param_src:bool_num:0
+- 
+o while(1)
+o begin
+- 
+o if param_src:aux:1:63 lop:> param_src:dec_num:60 rop:then
+o begin
+o call faddr_dest:RetractionLeftHand
+o load param_dest:var:is_left param_src:bool_num:1
+o end
+o elseif param_src:aux:6:63 lop:> param_src:dec_num:60 rop:then
+o begin
+o call faddr_dest:RetractionRightHand
+o load param_dest:var:is_right param_src:bool_num:1
+o end
+o elseif param_src:var:is_left lop:== param_src:bool_num:1 rop:&& param_src:var:is_right lop:== param_src:bool_num:1 rop:then
+o begin
+o break
+o end
+o end
+- 
+o load param_dest:cm:9 param_src:dec_num:10
+- 
+o while(1)
+o begin
+o if param_src:cm:1 lop:== param_src:rc100z_num:1 rop:then
+o begin
+o call faddr_dest:LeftArmDown
+o call faddr_dest:RightArmDown
+o end
+o end
+o end
+- 
 o // param_text:SIT DOWN
 o elseif param_src:cm:19 lop:== param_src:dec_num:3 rop:then
 o begin

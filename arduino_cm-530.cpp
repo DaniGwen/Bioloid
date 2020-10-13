@@ -1,6 +1,7 @@
 //**************************************************************************************************
 // INCLUDES
 //**************************************************************************************************
+#include <Arduino.h>
 #include <Wire.h>
 #include <SPI.h>
 #include <Pixy2.h> // Pixy2 library
@@ -169,11 +170,12 @@ void CheckPixyFramerate();
 void PrintDataFromCM530(int received);
 int ReceiveDataFromCM530();
 void PrintIRSensorValue(int value);
-void SendCommand(uint8_t button[0]);
+void SendCommand(uint8_t button[]);
 void SendDataMessage(char button[]);
 void LightsOn();
 void LightsOff();
 void PrintPanPosition();
+void playWithHands();
 
 // PIXY2 methods
 void Print_Y_Axis_Value(int y_axis);
@@ -184,7 +186,7 @@ void PixyDetectObject();
 //**************************************************************************************************
 void setup()
 {
-  Serial.begin(9600);
+  Serial1.begin(9600);
   //pinMode(0, OUTPUT);
 
   // Head Fan
@@ -206,7 +208,7 @@ void setup()
   //Wire.setClock(400000L);
 
   oled.begin(&Adafruit128x64, 0x3C); // Initialize display with the I2C address of 0x3C
-  oled.setScrollMode(SCROLL_MODE_OFF);
+  //oled.setScroll(SCROLL_MODE_OFF);
   oled.invertDisplay(false);
   oled.setInvertMode(false);
   oled.setLetterSpacing(3);
@@ -261,13 +263,13 @@ void setup()
   fsmState = ROBO_FSM_FIND;
 
   //Wait untill CM-530 is ready and running.
-  // while (receivedCM530 == 0)
-  // {
-  //   receivedCM530 = ReceiveDataFromCM530();
-  // }
+  while (receivedCM530 == 0)
+  {
+    ReceiveDataFromCM530();
+  }
 
   // Get up
-  //robotStandUp();
+  robotStandUp();
 }
 
 //**************************************************************************************************************************************
@@ -277,8 +279,8 @@ void loop()
 {
   irSensor_value = sensor.distance(); // Read Distance in centimeters;
   PixyDetectObject();                 // Read PIXY blocks and Updates servos
-  //ReceiveDataFromCM530();             // Read data from CM-530
-  CheckPixyFramerate(); // Turns lamp if FPS is < 30
+  ReceiveDataFromCM530();             // Read data from CM-530
+  CheckPixyFramerate();               // Turns lamp if FPS is < 30
 
   //***************************
   // PRINT DATA ON OLED DISPLAY
@@ -380,7 +382,6 @@ void loop()
 }
 
 // FUNCTIONS
-
 void PixyDetectObject()
 {
   static int i = 0;
@@ -408,52 +409,7 @@ void PixyDetectObject()
     pixy.setServos(panLoop.m_command, tiltLoop.m_command);
 
     // PLAY WITH HANDS
-    if (irSensor_value < 12)
-    {
-      // Left hand up
-      if (panLoop.m_command > 600)
-      {
-        SendCommand(buttonU3_ptr);
-        char buttonU3[] = "U3";
-        SendDataMessage(buttonU3);
-        pixy.setServos(800, 750);
-      }
-      // Right hand up
-      else if(panLoop.m_command < 400)
-      {
-        SendCommand(buttonU2_ptr);
-        char buttonU2[] = "U2";
-        SendDataMessage(buttonU2);
-        pixy.setServos(200, 750);
-      }
-
-      delay(2400);
-
-      while (true)
-      {
-        pixy.ccc.getBlocks();
-
-        if (pixy.ccc.numBlocks)
-        {
-          char buttonU[] = "U";
-          SendDataMessage(buttonU);
-          SendCommand(buttonU_ptr);
-          break;
-        }
-      }
-
-      // Standby while we see the block
-      while (pixy.ccc.getBlocks() > 0)
-      {
-      }
-
-      //Open hand
-      char buttonD[] = "D";
-      SendDataMessage(buttonD);
-      SendCommand(buttonD_ptr);
-
-      receivedCM530 = 0;
-    }
+    playWithHands();
 
     //Print information
     oled.clearField(0, 6, 300); // clearField (col, row , int - number of characters to delete)
@@ -689,7 +645,7 @@ void robotKick()
   SendDataMessage(button);
 }
 
-void SendCommand(uint8_t button[0])
+void SendCommand(const uint8_t button[])
 {
   Serial1.write(button, 3);
   delay(210);
@@ -921,5 +877,68 @@ void robotStandUp()
   else
   {
     SendCommand(buttonD_ptr);
+  }
+}
+
+void playWithHands()
+{
+  if (irSensor_value < 12)
+  {
+    // Left hand up
+    if (panLoop.m_command > 600)
+    {
+      SendCommand(buttonU3_ptr);
+      char buttonU3[] = "U3";
+      SendDataMessage(buttonU3);
+      pixy.setServos(770, 750);
+    }
+    // Right hand up
+    else if (panLoop.m_command < 400)
+    {
+      SendCommand(buttonU2_ptr);
+      char buttonU2[] = "U2";
+      SendDataMessage(buttonU2);
+      pixy.setServos(200, 750);
+    }
+
+    delay(2400);
+
+    while (true)
+    {
+      pixy.ccc.getBlocks();
+
+      if (pixy.ccc.numBlocks)
+      {
+        char buttonU[] = "U";
+        SendDataMessage(buttonU);
+        SendCommand(buttonU_ptr);
+        break;
+      }
+    }
+
+    // Standby while we see the block
+    while (pixy.ccc.getBlocks() > 0)
+    {
+    }
+
+    //Open hand
+    char buttonD[] = "D";
+    SendDataMessage(buttonD);
+    SendCommand(buttonD_ptr);
+
+    receivedCM530 = 0;
+  }
+  else if (irSensor_value < 15 && pixy.ccc.getBlocks() == 2)
+  {
+    SendCommand(buttonUR_ptr);
+    char buttonUR[] = "U R";
+    SendDataMessage(buttonUR);
+
+    // Wait CM530
+    while (ReceiveDataFromCM530() == 10)
+    {
+    }
+
+    SendCommand(buttonU_ptr);
   }
 }
